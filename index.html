@@ -9,7 +9,7 @@
             background-color: #0a0a12;
             color: #e2e8f0;
             font-family: sans-serif;
-            font-size: 18px; /* Сделали базовый шрифт крупнее */
+            font-size: 18px;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -22,42 +22,85 @@
             text-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
             text-align: center;
             margin-bottom: 8px;
-            font-size: 32px; /* Увеличили заголовок */
+            font-size: 32px;
             letter-spacing: 1px;
         }
         p.subtitle {
             color: #8892b0;
-            margin-bottom: 35px;
+            margin-bottom: 25px;
             text-align: center;
-            font-size: 20px; /* Увеличили подзаголовок */
+            font-size: 20px;
             line-height: 1.5;
             max-width: 650px;
         }
+        /* Стили для игрового меню */
+        .game-menu {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 750px;
+        }
+        .menu-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(0, 242, 254, 0.2);
+            color: #e2e8f0;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.05);
+        }
+        .menu-btn:hover {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: #00f2fe;
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+        .menu-btn.active {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            color: #000;
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
         .container {
             width: 100%;
-            max-width: 750px; /* Немного расширили контейнер под крупный шрифт */
+            max-width: 750px;
             background: #141423;
             border-radius: 16px;
             padding: 15px;
             box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
             border: 1px solid rgba(0, 242, 254, 0.15);
+            box-sizing: border-box;
             overflow: hidden;
         }
         iframe {
             border: none;
             width: 100%;
-            height: 800px; /* Увеличили высоту, чтобы крупный текст Яндекса не обрезался */
+            height: 800px;
         }
     </style>
 </head>
 <body>
 
-    <h1>🤖 КИБЕР-КВЕСТ: КАКАЯ ТЫ НЕЙРОСЕТЬ?</h1>
-    <p class="subtitle">Интерактивный квест-сканирование. Узнай свой истинный нейрооблик!</p>
+    <h1>🤖 ВЕЛИКИЙ КИБЕР-ХАБ</h1>
+    <p class="subtitle">Интерактивная вселенная квестов и тестов от молодого инди-разработчика.</p>
+
+    <!-- ИГРОВОЕ МЕНЮ -->
+    <div class="game-menu">
+        <a href="#" class="menu-btn active">🧠 Тест: Нейросети</a>
+        <!-- Эта кнопка будет вести на файл твоего квеста -->
+        <a href="quest.html" class="menu-btn">⚔️ Квест на Twine</a>
+    </div>
 
     <div class="container">
-        <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
-       
+        <!-- НЕ ЗАБУДЬ ВСТАВИТЬ СВОЮ ССЫЛКУ ИЗ ЯНДЕКС ФОРМ ВМЕСТО СТРОЧКИ НИЖЕ -->
+       <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
     </div>
 
 </body>
