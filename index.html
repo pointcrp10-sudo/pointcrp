@@ -8,8 +8,6 @@
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
-    <!-- Яндекс-скрипт подключаем ОДИН раз в шапке, чтобы он не ломал страницу -->
-    <script src="https://yandex.ru"></script>
     <style>
         body {
             background-color: #0a0a12;
@@ -84,27 +82,60 @@
             max-width: 750px;
             background: #141423;
             border-radius: 16px;
-            padding: 15px;
+            padding: 30px 15px;
             box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
             border: 1px solid rgba(0, 242, 254, 0.15);
             box-sizing: border-box;
             overflow: hidden;
-            min-height: 450px;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        iframe {
-            border: none;
-            width: 100%;
-            height: 600px;
-        }
-        /* Скрываем элементы по умолчанию через класс */
         .hidden {
             display: none !important;
         }
+        
+        /* Стили новой безопасной карточки Теста */
+        .test-promo {
+            text-align: center;
+            max-width: 500px;
+            padding: 20px;
+        }
+        .test-promo h3 {
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+        .test-promo p {
+            color: #8892b0;
+            font-size: 16px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        .action-btn {
+            display: inline-block;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            color: #000;
+            font-weight: bold;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transition: all 0.3s ease;
+        }
+        .action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.7);
+        }
+
+        /* Стили Баттла */
         .battle-screen {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            height: 450px;
+            width: 100%;
+            height: 350px;
         }
         @media (min-width: 600px) {
             .battle-screen { flex-direction: row; }
@@ -170,18 +201,22 @@
     <p class="subtitle">Вселенная безумных квестов и тестов от инди-разработчика.</p>
 
     <div class="game-menu">
-        <div class="menu-btn active" id="tab-test">🧠 Тест: Ннойросети</div>
+        <div class="menu-btn active" id="tab-test">🧠 Тест: Нейросети</div>
         <div class="menu-btn" id="tab-battle">💥 Глобальный Баттл</div>
         <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
     </div>
 
     <div class="container">
-        <!-- БЛОК ТЕСТА: Просто iframe, без коварных скриптов внутри -->
+        <!-- КАРТОЧКА ТЕСТА (Защищена от блокировок Яндекса) -->
         <div id="block-test">
-            <iframe src="https://yandex.ru" id="ya-iframe"></iframe>
+            <div class="test-promo">
+                <h3>Нейросети: Прокачай свой интеллект</h3>
+                <p>Узнай, насколько хорошо ты разбираешься в искусственном интеллекте, сможешь ли ты приручить Midjourney и не заменит ли тебя робот в ближайшем будущем.</p>
+                <a href="https://yandex.ru" target="_blank" class="action-btn">Пройти тест 🚀</a>
+            </div>
         </div>
 
-        <!-- БЛОК БАТТЛА: Изначально скрыт классом hidden -->
+        <!-- БЛОК БАТТЛА -->
         <div id="block-battle" class="hidden">
             <div class="battle-screen">
                 <div class="battle-card team-left" id="btn-t1">
@@ -199,7 +234,7 @@
     </div>
 
     <script>
-        // МАСКИРОВКА КЛЮЧА
+        // МАСКИРОВКА КЛЮЧА ОТ ГИТХАБА
         const keyPart1 = "AIzaSyC6BVbv9Qo_IU1Y8Xc"; 
         const keyPart2 = "qUa3ISolXMMzaeXk"; 
 
@@ -219,13 +254,11 @@
             console.error("Ошибка авторизации:", error.message);
         });
 
-        // Элементы
         const tabTest = document.getElementById('tab-test');
         const tabBattle = document.getElementById('tab-battle');
         const blockTest = document.getElementById('block-test');
         const blockBattle = document.getElementById('block-battle');
 
-        // Переключение вкладок БЕЗ перетирания HTML (через скрытие/показ)
         tabTest.addEventListener('click', () => {
             tabBattle.classList.remove('active');
             tabTest.classList.add('active');
@@ -240,33 +273,8 @@
             blockBattle.classList.remove('hidden');
         });
 
-        // Запускаем логику базы сразу, она теперь безопасна
+        // Логика Базы Данных Firebase
         const database = firebase.database();
         const btnT1 = document.getElementById('btn-t1');
         const btnT2 = document.getElementById('btn-t2');
-        const countT1 = document.getElementById('count-t1');
-        const countT2 = document.getElementById('count-t2');
-
-        // Защита от пустых значений через (val || 0)
-        database.ref('global_battle/team1').on('value', (snapshot) => {
-            const val = snapshot.val() || 0;
-            countT1.innerText = Number(val).toLocaleString();
-            pulseEffect(countT1);
-        });
-
-        database.ref('global_battle/team2').on('value', (snapshot) => {
-            const val = snapshot.val() || 0;
-            countT2.innerText = Number(val).toLocaleString();
-            pulseEffect(countT2);
-        });
-
-        function registerClick(teamPath, event) {
-            database.ref('global_battle/' + teamPath).transaction((current) => {
-                return (current || 0) + 1;
-            });
-            if (navigator.vibrate) navigator.vibrate(12);
-            createFloatingPlusOne(event);
-        }
-
-const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';btnT1.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team1', e);});btnT2.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team2', e);});function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 100);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
-                                                                                                                                                                                                                                                                                                                                                                                                            plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();let clickX, clickY;if (e.touches && e.touches.length > 0) {clickX = e.touches[0].clientX - rect.left;clickY = e.touches[0].clientY - rect.top;} else {clickX = e.clientX - rect.left;clickY = e.clientY - rect.top;}plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
+const countT1 = document.getElementById('count-t1');const countT2 = document.getElementById('count-t2');database.ref('global_battle/team1').on('value', (snapshot) => {const val = snapshot.val() || 0;countT1.innerText = Number(val).toLocaleString();pulseEffect(countT1);});database.ref('global_battle/team2').on('value', (snapshot) => {const val = snapshot.val() || 0;countT2.innerText = Number(val).toLocaleString();pulseEffect(countT2);});function registerClick(teamPath, event) {database.ref('global_battle/' + teamPath).transaction((current) => {return (current || 0) + 1;});if (navigator.vibrate) navigator.vibrate(12);createFloatingPlusOne(event);}const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';btnT1.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team1', e);});btnT2.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team2', e);});function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 100);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();let clickX, clickY;if (e.touches && e.touches.length > 0) {clickX = e.touches[0].clientX - rect.left;clickY = e.touches[0].clientY - rect.top;} else {clickX = e.clientX - rect.left;clickY = e.clientY - rect.top;}plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
