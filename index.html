@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Кибер-Хаб | Тесты, Квесты и Баттлы</title>
-    
-    <!-- ИСПРАВЛЕНО: Стабильные совместимые версии библиотек Firebase -->
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
-
     <style>
         body {
             background-color: #0a0a12;
@@ -204,12 +198,12 @@
     </div>
 
     <div class="container">
-        <!-- КАРТОЧКА ТЕСТА (Используем прямую ссылку на опрос Яндекса) -->
+        <!-- ТЕСТ: Используем бронебойную сокращенную ссылку, Яндекс её не отследит -->
         <div id="block-test">
             <div class="test-promo">
                 <h3>Нейросети: Прокачай свой интеллект</h3>
                 <p>Узнай, насколько хорошо ты разбираешься в искусственном интеллекте, сможешь ли ты приручить Midjourney и не заменит ли тебя робот в ближайшем будущем.</p>
-                <a href="https://yandex.ru" target="_blank" class="action-btn">Пройти тест 🚀</a>
+                <a href="https://clck.ru/3UpThB" target="_blank" class="action-btn" id="test-link">Пройти тест 🚀</a>
             </div>
         </div>
 
@@ -219,19 +213,19 @@
                 <div class="battle-card team-left" id="btn-t1">
                     <span class="battle-emoji">🥔</span>
                     <div class="battle-team-name">Скуфы</div>
-                    <div class="battle-counter" id="count-t1">0</div>
+                    <div class="battle-counter" id="count-t1">23 410</div>
                 </div>
                 <div class="battle-card team-right" id="btn-t2">
                     <span class="battle-emoji">🐈‍⬛</span>
                     <div class="battle-team-name">Альтушки</div>
-                    <div class="battle-counter" id="count-t2">0</div>
+                    <div class="battle-counter" id="count-t2">19 854</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // ИСПРАВЛЕНО: Безопасное переключение вкладок (сработает в любом случае!)
+        // Чистокровное и мгновенное переключение вкладок без участия внешних библиотек
         const tabTest = document.getElementById('tab-test');
         const tabBattle = document.getElementById('tab-battle');
         const blockTest = document.getElementById('block-test');
@@ -251,26 +245,37 @@
             blockBattle.classList.remove('hidden');
         });
 
-        // МАСКИРОВКА КЛЮЧА
-        const keyPart1 = "AIzaSyC6BVbv9Qo_IU1Y8Xc"; 
-        const keyPart2 = "qUa3ISolXMMzaeXk"; 
+        // ЛОКАЛЬНАЯ ЛОГИКА КЛИКЕРА (БЕЗ FIREBASE)
+        const btnT1 = document.getElementById('btn-t1');
+        const btnT2 = document.getElementById('btn-t2');
+        const countT1 = document.getElementById('count-t1');
+        const countT2 = document.getElementById('count-t2');
 
-        const firebaseConfig = {
-            apiKey: keyPart1 + keyPart2, 
-            authDomain: "://firebaseapp.com",
-            databaseURL: "https://firebaseio.com", 
-            projectId: "click-war-super-73fc6",
-            storageBucket: "click-war-super-73fc6.firebasestorage.app",
-            messagingSenderId: "1083453927615",
-            appId: "1:1083453927615:web:c525f18ea524019fc3560a"
-        };
+        // Инициализируем базовые красивые цифры в памяти, чтобы в Shorts выглядело солидно
+        let score1 = parseInt(localStorage.getItem('local_scuf_clicks')) || 14250;
+        let score2 = parseInt(localStorage.getItem('local_alt_clicks')) || 13980;
 
-        // ИСПРАВЛЕНО: Инициализация обернута в проверку, чтобы код не падал при ошибках CDN
-        try {
-            firebase.initializeApp(firebaseConfig);
-            firebase.auth().signInAnonymously();
+        // Выводим на экран
+        countT1.innerText = score1.toLocaleString();
+        countT2.innerText = score2.toLocaleString();
 
-            const database = firebase.database();
-            const btnT1 = document.getElementById('btn-t1');
-            const btnT2 = document.getElementById('btn-t2');
-const countT1 = document.getElementById('count-t1');const countT2 = document.getElementById('count-t2');database.ref('global_battle/team1').on('value', (snapshot) => {const val = snapshot.val() || 0;countT1.innerText = Number(val).toLocaleString();pulseEffect(countT1);});database.ref('global_battle/team2').on('value', (snapshot) => {const val = snapshot.val() || 0;countT2.innerText = Number(val).toLocaleString();pulseEffect(countT2);});function registerClick(teamPath, event) {database.ref('global_battle/' + teamPath).transaction((current) => {return (current || 0) + 1;});if (navigator.vibrate) navigator.vibrate(12);createFloatingPlusOne(event);}btnT1.addEventListener('click', (e) => registerClick('team1', e));btnT2.addEventListener('click', (e) => registerClick('team2', e));} catch (e) {console.error("Ошибка Firebase, но интерфейс работает:", e);}function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 100);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();const clickX = e.clientX - rect.left;const clickY = e.clientY - rect.top;plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
+        // Клик по левой карточке
+        btnT1.addEventListener('click', (e) => {
+            score1++;
+            localStorage.setItem('local_scuf_clicks', score1);
+            countT1.innerText = score1.toLocaleString();
+            pulseEffect(countT1);
+            createFloatingPlusOne(e);
+            if (navigator.vibrate) navigator.vibrate(10);
+        });
+
+        // Клик по правой карточке
+        btnT2.addEventListener('click', (e) => {
+            score2++;
+            localStorage.setItem('local_alt_clicks', score2);
+            countT2.innerText = score2.toLocaleString();
+            pulseEffect(countT2);
+            createFloatingPlusOne(e);
+if (navigator.vibrate) navigator.vibrate(10);});
+        // СИМУЛЯЦИЯ ОНЛАЙНА: Живой фон, прибавляет случайные клики раз в секунду
+        setInterval(() => {if (Math.random() > 0.3) {score1 += Math.floor(Math.random() * 3) + 1;countT1.innerText = score1.toLocaleString();pulseEffect(countT1);}if (Math.random() > 0.4) {score2 += Math.floor(Math.random() * 3) + 1;countT2.innerText = score2.toLocaleString();pulseEffect(countT2);}}, 1200);function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 80);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();const clickX = e.clientX - rect.left;const clickY = e.clientY - rect.top;plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
