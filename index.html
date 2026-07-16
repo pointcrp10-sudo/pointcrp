@@ -95,8 +95,6 @@
         .hidden {
             display: none !important;
         }
-        
-        /* Стили новой безопасной карточки Теста */
         .test-promo {
             text-align: center;
             max-width: 500px;
@@ -128,8 +126,6 @@
             transform: scale(1.05);
             box-shadow: 0 0 30px rgba(0, 242, 254, 0.7);
         }
-
-        /* Стили Баттла */
         .battle-screen {
             display: flex;
             flex-direction: column;
@@ -207,7 +203,7 @@
     </div>
 
     <div class="container">
-        <!-- КАРТОЧКА ТЕСТА (Защищена от блокировок Яндекса) -->
+        <!-- КАРТОЧКА ТЕСТА (Исправленный чистый адрес без редиректов Яндекса) -->
         <div id="block-test">
             <div class="test-promo">
                 <h3>Нейросети: Прокачай свой интеллект</h3>
@@ -259,6 +255,7 @@
         const blockTest = document.getElementById('block-test');
         const blockBattle = document.getElementById('block-battle');
 
+        // Используем стандартный клик для стабильного переключения меню на мобилках
         tabTest.addEventListener('click', () => {
             tabBattle.classList.remove('active');
             tabTest.classList.add('active');
@@ -277,4 +274,8 @@
         const database = firebase.database();
         const btnT1 = document.getElementById('btn-t1');
         const btnT2 = document.getElementById('btn-t2');
-const countT1 = document.getElementById('count-t1');const countT2 = document.getElementById('count-t2');database.ref('global_battle/team1').on('value', (snapshot) => {const val = snapshot.val() || 0;countT1.innerText = Number(val).toLocaleString();pulseEffect(countT1);});database.ref('global_battle/team2').on('value', (snapshot) => {const val = snapshot.val() || 0;countT2.innerText = Number(val).toLocaleString();pulseEffect(countT2);});function registerClick(teamPath, event) {database.ref('global_battle/' + teamPath).transaction((current) => {return (current || 0) + 1;});if (navigator.vibrate) navigator.vibrate(12);createFloatingPlusOne(event);}const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';btnT1.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team1', e);});btnT2.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team2', e);});function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 100);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();let clickX, clickY;if (e.touches && e.touches.length > 0) {clickX = e.touches[0].clientX - rect.left;clickY = e.touches[0].clientY - rect.top;} else {clickX = e.clientX - rect.left;clickY = e.clientY - rect.top;}plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
+const countT1 = document.getElementById('count-t1');const countT2 = document.getElementById('count-t2');database.ref('global_battle/team1').on('value', (snapshot) => {const val = snapshot.val() || 0;countT1.innerText = Number(val).toLocaleString();pulseEffect(countT1);});database.ref('global_battle/team2').on('value', (snapshot) => {const val = snapshot.val() || 0;countT2.innerText = Number(val).toLocaleString();pulseEffect(countT2);});function registerClick(teamPath, event) {database.ref('global_battle/' + teamPath).transaction((current) => {return (current || 0) + 1;});if (navigator.vibrate) navigator.vibrate(12);createFloatingPlusOne(event);}
+        // Перешли на полностью безопасное событие клика (убрана блокировка e.preventDefault)
+        btnT1.addEventListener('click', (e) => {registerClick('team1', e);});btnT2.addEventListener('click', (e) => {registerClick('team2', e);});function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 100);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();
+                                                                                                                                                                                                                                                                                              // Надежный расчет координат без использования массива пальцев 
+                                                                                                                                                                                                                                                                                              touchesconst clickX = e.clientX - rect.left;const clickY = e.clientY - rect.top;plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
