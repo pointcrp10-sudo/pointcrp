@@ -181,10 +181,12 @@
 
     <!-- ИГРОВОЕ МЕНЮ (Добавили третью кнопку) -->
     <div class="game-menu">
-        <button class="menu-btn active" id="tab-test">🧠 Тест: Нейросети</button>
+        <div class="menu-btn active" id="tab-test">🧠 Тест: Нейросети</div>
+        <div class="menu-btn" id="tab-battle">💥 Глобальный Баттл</div>
+        <!-- Квест оставляем ссылкой, так как он ведет на другую страницу -->
         <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
-        <button class="menu-btn" id="tab-battle">💥 Глобальный Баттл</button>
     </div>
+
 
     <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
     <div class="container" id="main-content-box">
@@ -193,25 +195,18 @@
         <iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
     </div>
 
-    <script>
+ <script>
     // ==========================================
     // НАСТРОЙКА FIREBASE (Вставь свои данные ниже)
     // ==========================================
     const firebaseConfig = {
-          apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
-
+       apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
   authDomain: "click-war-dd6cd.firebaseapp.com",
-
   databaseURL: "https://click-war-dd6cd-default-rtdb.firebaseio.com",
-
   projectId: "click-war-dd6cd",
-
   storageBucket: "click-war-dd6cd.firebasestorage.app",
-
   messagingSenderId: "666710892313",
-
   appId: "1:666710892313:web:73db9df6d3e15c40f02f88"
-
     };
 
     // Инициализация базы, если конфиг заполнен
@@ -224,7 +219,7 @@
     const tabBattle = document.getElementById('tab-battle');
     const contentBox = document.getElementById('main-content-box');
 
-    // Сохраняем код Яндекс Формы, чтобы вернуть её при переключении обратно
+    // Сохраняем код Яндекс Формы
     const testHTML = `<script src="https://yandex.ru"><\/script><iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>`;
 
     // Шаблон разметки для баттла
@@ -243,20 +238,21 @@
         </div>
     `;
 
-    // Переключение на вкладку ТЕСТ
+    // Функция переключения вкладок
+    function switchTab(activeTab, inactiveTab, htmlContent) {
+        inactiveTab.classList.remove('active');
+        activeTab.classList.add('active');
+        contentBox.innerHTML = htmlContent;
+    }
+
+    // Обычные клики для меню (работают везде отлично)
     tabTest.addEventListener('click', () => {
-        tabBattle.classList.remove('active');
-        tabTest.classList.add('active');
-        contentBox.innerHTML = testHTML;
+        switchTab(tabTest, tabBattle, testHTML);
     });
 
-    // Переключение на вкладку БАТТЛ
     tabBattle.addEventListener('click', () => {
-        tabTest.classList.remove('active');
-        tabBattle.classList.add('active');
-        contentBox.innerHTML = battleHTML;
-        
-        // Запускаем логику кликера после того, как HTML появился в коробке
+        switchTab(tabBattle, tabTest, battleHTML);
+        // Запускаем кликер сразу после отрисовки
         initClickerLogic();
     });
 
@@ -275,7 +271,7 @@
         const countT1 = document.getElementById('count-t1');
         const countT2 = document.getElementById('count-t2');
 
-        // Подписка на онлайн-обновления счетчиков
+        // Подписка на обновления Firebase
         database.ref('global_battle/team1').on('value', (snapshot) => {
             const val = snapshot.val() || 0;
             countT1.innerText = val.toLocaleString();
@@ -288,20 +284,16 @@
             pulseEffect(countT2);
         });
 
-        // Функция отправки клика в Firebase
+        // Функция клика
         function registerClick(teamPath, event) {
             database.ref('global_battle/' + teamPath).transaction((current) => {
                 return (current || 0) + 1;
             });
-            
-            // Виброотклик на смартфонах
             if (navigator.vibrate) navigator.vibrate(12);
-
-            // Создаем красивый вылетающий текст "+1" в месте клика
             createFloatingPlusOne(event);
         }
 
-        // Быстрый отклик на мобильных устройствах (touchstart вместо click)
+        // Для самих карточек используем touchstart на мобилках или mousedown на ПК
         const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';
 
         btnT1.addEventListener(activeEvent, (e) => {
@@ -315,13 +307,11 @@
         });
     }
 
-    // Эффект увеличения цифр
     function pulseEffect(el) {
         el.classList.add('pulse');
         setTimeout(() => el.classList.remove('pulse'), 100);
     }
 
-    // Функция создания вылетающего "+1"
     function createFloatingPlusOne(e) {
         const targetCard = e.currentTarget;
         const plusOne = document.createElement('div');
@@ -329,14 +319,13 @@
         plusOne.style.position = 'absolute';
         plusOne.style.color = '#ffffff';
         plusOne.style.fontWeight = 'bold';
-        plusOne.style.fontSize = '24px';
+        plusOne.style.fontSize = '28px';
         plusOne.style.pointerEvents = 'none';
         plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
-        plusOne.style.textShadow = '0 0 8px rgba(255,255,255,0.8)';
+        plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';
 
-        // Координаты тапа/клика относительно карточки
         let clickX, clickY;
-        if (e.touches && e.touches[0]) {
+        if (e.touches && e.touches.length > 0) {
             const rect = targetCard.getBoundingClientRect();
             clickX = e.touches[0].clientX - rect.left;
             clickY = e.touches[0].clientY - rect.top;
