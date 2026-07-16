@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Кибер-Хаб | Глобальный Баттл</title>
+    <style>
+        body {
+            background-color: #0a0a12;
+            color: #e2e8f0;
+            font-family: sans-serif;
+            font-size: 18px;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        h1 {
+            color: #00f2fe;
+            text-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 32px;
+            letter-spacing: 1px;
+        }
+        p.subtitle {
+            color: #8892b0;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 20px;
+            line-height: 1.5;
+            max-width: 650px;
+        }
+        .game-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 750px;
+        }
+        .menu-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(0, 242, 254, 0.2);
+            color: #e2e8f0;
+            padding: 12px 5px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .menu-btn:hover {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: #00f2fe;
+            transform: translateY(-3px);
+        }
+        .menu-btn.active {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            color: #000;
+            border: none;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+        }
+        .container {
+            width: 100%;
+            max-width: 750px;
+            background: #141423;
+            border-radius: 16px;
+            padding: 30px 15px;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
+            border: 1px solid rgba(0, 242, 254, 0.15);
+            box-sizing: border-box;
+            overflow: hidden;
+            min-height: 400px;
+        }
+        .battle-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            height: 350px;
+        }
+        @media (min-width: 600px) {
+            .battle-screen { flex-direction: row; }
+        }
+        .battle-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: transform 0.05s ease, box-shadow 0.1s ease;
+            position: relative;
+            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .team-left {
+            background: linear-gradient(135deg, #111e25, #1a3038);
+            border: 2px solid #00f2fe;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+        }
+        .team-right {
+            background: linear-gradient(135deg, #2b1424, #3a162f);
+            border: 2px solid #ff007f;
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.1);
+        }
+        .battle-card:active { transform: scale(0.97); }
+        .team-left:active { box-shadow: 0 0 25px rgba(0, 242, 254, 0.5); }
+        .team-right:active { box-shadow: 0 0 25px rgba(255, 0, 127, 0.5); }
+        
+        .battle-emoji { font-size: 55px; margin-bottom: 5px; }
+        .battle-team-name {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .battle-counter {
+            font-size: 38px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+        .team-left .battle-counter { text-shadow: 0 0 10px #00f2fe; color: #00f2fe; }
+        .team-right .battle-counter { text-shadow: 0 0 10px #ff007f; color: #ff007f; }
+
+        .pulse { animation: pulseAnim 0.1s ease-in-out; }
+        @keyframes pulseAnim {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+            100% { transform: scale(1); }
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🤖 ИНТЕРАКТИВНЫЙ УГОЛОК</h1>
+    <p class="subtitle">Вселенная безумных квестов и тестов от инди-разработчика.</p>
+
+    <div class="game-menu">
+        <a href="index.html" class="menu-btn">🧠 Тест: Нейросети</a>
+        <a href="battle.html" class="menu-btn active">💥 Глобальный Баттл</a>
+        <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
+    </div>
+
+    <div class="container">
+        <div class="battle-screen">
+            <div class="battle-card team-left" id="btn-t1">
+                <span class="battle-emoji">🥔</span>
+                <div class="battle-team-name">Скуфы</div>
+                <div class="battle-counter" id="count-t1">14,250</div>
+            </div>
+            <div class="battle-card team-right" id="btn-t2">
+                <span class="battle-emoji">🐈‍⬛</span>
+                <div class="battle-team-name">Альтушки</div>
+                <div class="battle-counter" id="count-t2">13,980</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const btnT1 = document.getElementById('btn-t1');
+        const btnT2 = document.getElementById('btn-t2');
+        const countT1 = document.getElementById('count-t1');
+        const countT2 = document.getElementById('count-t2');
+
+        let score1 = parseInt(localStorage.getItem('local_scuf_clicks')) || 14250;
+        let score2 = parseInt(localStorage.getItem('local_alt_clicks')) || 13980;
+
+        countT1.innerText = score1.toLocaleString();
+        countT2.innerText = score2.toLocaleString();
+
+        // Клик Скуфы
+        btnT1.addEventListener('click', (e) => {
+            score1++;
+            localStorage.setItem('local_scuf_clicks', score1);
+            countT1.innerText = score1.toLocaleString();
+            pulseEffect(countT1);
+            createFloatingPlusOne(e);
+        });
+
+        // Клик Альтушки
+        btnT2.addEventListener('click', (e) => {
+            score2++;
+            localStorage.setItem('local_alt_clicks', score2);
+            countT2.innerText = score2.toLocaleString();
+            pulseEffect(countT2);
+            createFloatingPlusOne(e);
+        });
+
+        // Имитация онлайна
+        setInterval(() => {
+            if (Math.random() > 0.3) {
+                score1 += Math.floor(Math.random() * 2) + 1;
+                countT1.innerText = score1.toLocaleString();
+                pulseEffect(countT1);
+            }
+            if (Math.random() > 0.4) {
+                score2 += Math.floor(Math.random() * 2) + 1;
+                countT2.innerText = score2.toLocaleString();
+                pulseEffect(countT2);
+            }
+        }, 1300);
+
+        function pulseEffect(el) {
+            el.classList.add('pulse');
+            setTimeout(() => el.classList.remove('pulse'), 80);
+        }
+
+        function createFloatingPlusOne(e) {
+            const targetCard = e.currentTarget;
+            const plusOne = document.createElement('div');
+            plusOne.innerText = '+1';
+            plusOne.style.position = 'absolute';
+            plusOne.style.color = '#ffffff';
+            plusOne.style.fontWeight = 'bold';
+            plusOne.style.fontSize = '28px';
+            plusOne.style.pointerEvents = 'none';
+            plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
+            plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';
+
+            const rect = targetCard.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            plusOne.style.left = `${clickX}px`;
+            plusOne.style.top = `${clickY}px`;
+
+            targetCard.appendChild(plusOne);
+            setTimeout(() => plusOne.remove(), 400);
+        }
+    </script>
+</body>
+</html>
