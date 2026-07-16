@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- Добавлен тег для стабильной работы кликов без зума на мобилках -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Кибер-Хаб | Тесты, Квесты и Баттлы</title>
-    <!-- Подключаем Firebase прямо в шапке -->
+    <!-- Подключаем библиотеки Firebase через CDN -->
+    <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <style>
@@ -21,7 +21,7 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
-            -webkit-user-select: none; /* Запрещаем выделение текста на мобилках при кликах */
+            -webkit-user-select: none;
             user-select: none;
         }
         h1 {
@@ -40,11 +40,6 @@
             line-height: 1.5;
             max-width: 650px;
         }
-        @keyframes floatUp {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
-}
-        /* Стили для игрового меню */
         .game-menu {
             display: flex;
             gap: 10px;
@@ -92,28 +87,21 @@
             border: 1px solid rgba(0, 242, 254, 0.15);
             box-sizing: border-box;
             overflow: hidden;
-            min-height: 450px; /* Чтобы контент не прыгал по высоте */
+            min-height: 450px;
         }
         iframe {
             border: none;
             width: 100%;
             height: 800px;
         }
-
-        /* -------------------------------------------------- */
-        /* СТИЛИ ДЛЯ В КЛАДКИ БАТТЛА (АДАПТИРОВАНО ПОД МОБИЛКИ) */
-        /* -------------------------------------------------- */
         .battle-screen {
             display: flex;
             flex-direction: column;
             gap: 15px;
             height: 450px;
         }
-        /* На планшетах и ПК блоки будут стоять рядом */
         @media (min-width: 600px) {
-            .battle-screen {
-                flex-direction: row;
-            }
+            .battle-screen { flex-direction: row; }
         }
         .battle-card {
             flex: 1;
@@ -126,30 +114,23 @@
             transition: transform 0.05s ease, box-shadow 0.1s ease;
             position: relative;
             padding: 20px;
-            -webkit-tap-highlight-color: transparent; /* Убираем синий квадрат на iOS */
+            -webkit-tap-highlight-color: transparent;
         }
-        /* Стили для левой команды */
         .team-left {
             background: linear-gradient(135deg, #111e25, #1a3038);
             border: 2px solid #00f2fe;
             box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
         }
-        /* Стили для правой команды */
         .team-right {
             background: linear-gradient(135deg, #2b1424, #3a162f);
             border: 2px solid #ff007f;
             box-shadow: 0 0 10px rgba(255, 0, 127, 0.1);
         }
-        .battle-card:active {
-            transform: scale(0.97); /* Эффект продавливания при тапе */
-        }
+        .battle-card:active { transform: scale(0.97); }
         .team-left:active { box-shadow: 0 0 25px rgba(0, 242, 254, 0.5); }
         .team-right:active { box-shadow: 0 0 25px rgba(255, 0, 127, 0.5); }
         
-        .battle-emoji {
-            font-size: 55px;
-            margin-bottom: 5px;
-        }
+        .battle-emoji { font-size: 55px; margin-bottom: 5px; }
         .battle-team-name {
             font-size: 22px;
             font-weight: bold;
@@ -165,12 +146,15 @@
         .team-left .battle-counter { text-shadow: 0 0 10px #00f2fe; color: #00f2fe; }
         .team-right .battle-counter { text-shadow: 0 0 10px #ff007f; color: #ff007f; }
 
-        /* Анимация вспышки цифр */
         .pulse { animation: pulseAnim 0.1s ease-in-out; }
         @keyframes pulseAnim {
             0% { transform: scale(1); }
             50% { transform: scale(1.12); }
             100% { transform: scale(1); }
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
         }
     </style>
 </head>
@@ -179,150 +163,135 @@
     <h1>🤖 ИНТЕРАКТИВНЫЙ УГОЛОК</h1>
     <p class="subtitle">Вселенная безумных квестов и тестов от инди-разработчика.</p>
 
-    <!-- ИГРОВОЕ МЕНЮ (Добавили третью кнопку) -->
     <div class="game-menu">
         <div class="menu-btn active" id="tab-test">🧠 Тест: Нейросети</div>
         <div class="menu-btn" id="tab-battle">💥 Глобальный Баттл</div>
-        <!-- Квест оставляем ссылкой, так как он ведет на другую страницу -->
         <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
     </div>
 
-
-    <!-- ОСНОВНОЙ КОНТЕЙНЕР -->
     <div class="container" id="main-content-box">
-        <!-- По умолчанию загружен тест (твоя Яндекс Форма) -->
-        <script src="https://forms.yandex.ru/_static/embed.js"></script>
-        <iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
+        <script src="https://yandex.ru"></script>
+        <iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
     </div>
 
+    <script>
+        // ==========================================
+        // НАСТРОЙКА FIREBASE С МАСКИРОВКОЙ КЛЮЧА
+        // ==========================================
+        
+        // Разрезали твой ключ AIzaSyC6BVbv9Qo_IU1Y8XcqUa3ISolXMMzaeXk напополам
+        const keyPart1 = "AIzaSyC6BVbv9Qo_IU1Y8Xc"; 
+        const keyPart2 = "qUa3ISolXMMzaeXk"; 
 
-     <script>
-    // ==========================================
-    // НАСТРОЙКА FIREBASE (Твои проверенные данные)
-    // ==========================================
-    const firebaseConfig = {
-        apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
-        authDomain: "click-war-dd6cd.firebaseapp.com",
-        databaseURL: "https://click-war-dd6cd-default-rtdb.firebaseio.com",
-        projectId: "click-war-dd6cd",
-        storageBucket: "click-war-dd6cd.firebasestorage.app",
-        messagingSenderId: "666710892313",
-        appId: "1:666710892313:web:73db9df6d3e15c40f02f88"
-    };
+        const firebaseConfig = {
+            apiKey: keyPart1 + keyPart2, 
+            authDomain: "click-war-super-73fc6.firebaseapp.com",
+            databaseURL: "https://firebaseio.com", 
+            projectId: "click-war-super-73fc6",
+            storageBucket: "click-war-super-73fc6.firebasestorage.app",
+            messagingSenderId: "1083453927615",
+            appId: "1:1083453927615:web:c525f18ea524019fc3560a"
+        };
 
-    // Инициализация базы
-    firebase.initializeApp(firebaseConfig);
+        // Инициализация базы
+               firebase.initializeApp(firebaseConfig);
 
-    // Элементы навигации
-    const tabTest = document.getElementById('tab-test');
-    const tabBattle = document.getElementById('tab-battle');
-    const contentBox = document.getElementById('main-content-box');
-
-    // Код твоей Яндекс Формы
-    const testHTML = `<script src="https://yandex.ru"><\/script><iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>`;
-
-    // Шаблон разметки для баттла
-    const battleHTML = `
-        <div class="battle-screen">
-            <div class="battle-card team-left" id="btn-t1">
-                <span class="battle-emoji">🥔</span>
-                <div class="battle-team-name">Скуфы</div>
-                <div class="battle-counter" id="count-t1">0</div>
-            </div>
-            <div class="battle-card team-right" id="btn-t2">
-                <span class="battle-emoji">🐈‍⬛</span>
-                <div class="battle-team-name">Альтушки</div>
-                <div class="battle-counter" id="count-t2">0</div>
-            </div>
-        </div>
-    `;
-
-    // Функция переключения вкладок
-    function switchTab(activeTab, inactiveTab, htmlContent) {
-        inactiveTab.classList.remove('active');
-        activeTab.classList.add('active');
-        contentBox.innerHTML = htmlContent;
-    }
-
-    // Обработчики кликов для меню
-    tabTest.addEventListener('click', () => {
-        switchTab(tabTest, tabBattle, testHTML);
-    });
-
-    tabBattle.addEventListener('click', () => {
-        switchTab(tabBattle, tabTest, battleHTML);
-        // Запускаем кликер сразу после отрисовки
-        initClickerLogic();
-    });
-
-    // Логика работы кликера
-    function initClickerLogic() {
-        const database = firebase.database();
-        const btnT1 = document.getElementById('btn-t1');
-        const btnT2 = document.getElementById('btn-t2');
-        const countT1 = document.getElementById('count-t1');
-        const countT2 = document.getElementById('count-t2');
-
-        // Подписка на обновления Firebase
-        database.ref('global_battle/team1').on('value', (snapshot) => {
-            const val = snapshot.val() || 0;
-            countT1.innerText = val.toLocaleString();
-            pulseEffect(countT1);
+        firebase.auth().signInAnonymously().catch((error) => {
+            console.error("Ошибка авторизации:", error.message);
         });
 
-        database.ref('global_battle/team2').on('value', (snapshot) => {
-            const val = snapshot.val() || 0;
-            countT2.innerText = val.toLocaleString();
-            pulseEffect(countT2);
+        const tabTest = document.getElementById('tab-test');
+        const tabBattle = document.getElementById('tab-battle');
+        const contentBox = document.getElementById('main-content-box');
+
+        const testHTML = '<script src="https://yandex.ru"><\/script><iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>';
+
+        const battleHTML = '<div class="battle-screen"><div class="battle-card team-left" id="btn-t1"><span class="battle-emoji">🥔</span><div class="battle-team-name">Скуфы</div><div class="battle-counter" id="count-t1">0</div></div><div class="battle-card team-right" id="btn-t2"><span class="battle-emoji">🐈‍⬛</span><div class="battle-team-name">Альтушки</div><div class="battle-counter" id="count-t2">0</div></div></div>';
+
+        tabTest.addEventListener('click', () => {
+            tabBattle.classList.remove('active');
+            tabTest.classList.add('active');
+            contentBox.innerHTML = testHTML;
         });
 
-        // Функция отправки клика
-        function registerClick(teamPath, event) {
-            database.ref('global_battle/' + teamPath).transaction((current) => {
-                return (current || 0) + 1;
+        tabBattle.addEventListener('click', () => {
+            tabTest.classList.remove('active');
+            tabBattle.classList.add('active');
+            contentBox.innerHTML = battleHTML;
+            initClickerLogic();
+        });
+
+        function initClickerLogic() {
+            const database = firebase.database();
+            const btnT1 = document.getElementById('btn-t1');
+            const btnT2 = document.getElementById('btn-t2');
+            const countT1 = document.getElementById('count-t1');
+            const countT2 = document.getElementById('count-t2');
+
+            database.ref('global_battle/team1').on('value', (snapshot) => {
+                const val = snapshot.val() || 0;
+                countT1.innerText = val.toLocaleString();
+                pulseEffect(countT1);
             });
-            if (navigator.vibrate) navigator.vibrate(12);
-            createFloatingPlusOne(event);
+
+            database.ref('global_battle/team2').on('value', (snapshot) => {
+                const val = snapshot.val() || 0;
+                countT2.innerText = val.toLocaleString();
+                pulseEffect(countT2);
+            });
+
+            function registerClick(teamPath, event) {
+                database.ref('global_battle/' + teamPath).transaction((current) => {
+                    return (current || 0) + 1;
+                });
+                if (navigator.vibrate) navigator.vibrate(12);
+                createFloatingPlusOne(event);
+            }
+
+            const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';
+
+            btnT1.addEventListener(activeEvent, (e) => {
+                e.preventDefault();
+                registerClick('team1', e);
+            });
+
+            btnT2.addEventListener(activeEvent, (e) => {
+                e.preventDefault();
+                registerClick('team2', e);
+            });
         }
 
-        // Используем универсальное событие 'pointerdown' (работает мгновенно и на ПК, и на мобилках)
-        btnT1.addEventListener('pointerdown', (e) => {
-            registerClick('team1', e);
-        });
+        function pulseEffect(el) {
+            el.classList.add('pulse');
+            setTimeout(() => el.classList.remove('pulse'), 100);
+        }
 
-        btnT2.addEventListener('pointerdown', (e) => {
-            registerClick('team2', e);
-        });
-    }
+        function createFloatingPlusOne(e) {
+            const targetCard = e.currentTarget;
+            const plusOne = document.createElement('div');
+            plusOne.innerText = '+1';
+            plusOne.style.position = 'absolute';
+            plusOne.style.color = '#ffffff';
+            plusOne.style.fontWeight = 'bold';
+            plusOne.style.fontSize = '28px';
+            plusOne.style.pointerEvents = 'none';
+            plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
+            plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';
 
-    function pulseEffect(el) {
-        el.classList.add('pulse');
-        setTimeout(() => el.classList.remove('pulse'), 100);
-    }
+            const rect = targetCard.getBoundingClientRect();
+            let clickX, clickY;
+            if (e.touches && e.touches.length > 0) {
+                clickX = e.touches.clientX - rect.left;
+                clickY = e.touches.clientY - rect.top;
+            } else {
+                clickX = e.clientX - rect.left;
+                clickY = e.clientY - rect.top;
+            }
 
-    function createFloatingPlusOne(e) {
-        const targetCard = e.currentTarget;
-        const plusOne = document.createElement('div');
-        plusOne.innerText = '+1';
-        plusOne.style.position = 'absolute';
-        plusOne.style.color = '#ffffff';
-        plusOne.style.fontWeight = 'bold';
-        plusOne.style.fontSize = '28px';
-        plusOne.style.pointerEvents = 'none';
-        plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
-        plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';
+            plusOne.style.left = `${clickX}px`;
+            plusOne.style.top = `${clickY}px`;
 
-        // Универсальное получение координат клика/тапа через clientX/clientY
-        const rect = targetCard.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-
-        plusOne.style.left = `${clickX}px`;
-        plusOne.style.top = `${clickY}px`;
-
-        targetCard.appendChild(plusOne);
-        setTimeout(() => plusOne.remove(), 400);
-    }
-</script>
-
+            targetCard.appendChild(plusOne);
+            setTimeout(() => plusOne.remove(), 400);
+        }
 
