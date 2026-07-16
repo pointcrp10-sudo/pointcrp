@@ -195,31 +195,30 @@
         <iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
     </div>
 
- <script>
+
+     <script>
     // ==========================================
-    // НАСТРОЙКА FIREBASE (Вставь свои данные ниже)
+    // НАСТРОЙКА FIREBASE (Твои проверенные данные)
     // ==========================================
     const firebaseConfig = {
-       apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
-  authDomain: "click-war-dd6cd.firebaseapp.com",
-  databaseURL: "https://click-war-dd6cd-default-rtdb.firebaseio.com",
-  projectId: "click-war-dd6cd",
-  storageBucket: "click-war-dd6cd.firebasestorage.app",
-  messagingSenderId: "666710892313",
-  appId: "1:666710892313:web:73db9df6d3e15c40f02f88"
+        apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
+        authDomain: "click-war-dd6cd.firebaseapp.com",
+        databaseURL: "https://click-war-dd6cd-default-rtdb.firebaseio.com",
+        projectId: "click-war-dd6cd",
+        storageBucket: "click-war-dd6cd.firebasestorage.app",
+        messagingSenderId: "666710892313",
+        appId: "1:666710892313:web:73db9df6d3e15c40f02f88"
     };
 
-    // Инициализация базы, если конфиг заполнен
-    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-        firebase.initializeApp(firebaseConfig);
-    }
+    // Инициализация базы
+    firebase.initializeApp(firebaseConfig);
 
     // Элементы навигации
     const tabTest = document.getElementById('tab-test');
     const tabBattle = document.getElementById('tab-battle');
     const contentBox = document.getElementById('main-content-box');
 
-    // Сохраняем код Яндекс Формы
+    // Код твоей Яндекс Формы
     const testHTML = `<script src="https://yandex.ru"><\/script><iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>`;
 
     // Шаблон разметки для баттла
@@ -245,7 +244,7 @@
         contentBox.innerHTML = htmlContent;
     }
 
-    // Обычные клики для меню (работают везде отлично)
+    // Обработчики кликов для меню
     tabTest.addEventListener('click', () => {
         switchTab(tabTest, tabBattle, testHTML);
     });
@@ -258,13 +257,6 @@
 
     // Логика работы кликера
     function initClickerLogic() {
-        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-            document.getElementById('count-t1').innerText = "ERR";
-            document.getElementById('count-t2').innerText = "ERR";
-            console.error("Firebase не настроен!");
-            return;
-        }
-
         const database = firebase.database();
         const btnT1 = document.getElementById('btn-t1');
         const btnT2 = document.getElementById('btn-t2');
@@ -284,7 +276,7 @@
             pulseEffect(countT2);
         });
 
-        // Функция клика
+        // Функция отправки клика
         function registerClick(teamPath, event) {
             database.ref('global_battle/' + teamPath).transaction((current) => {
                 return (current || 0) + 1;
@@ -293,16 +285,12 @@
             createFloatingPlusOne(event);
         }
 
-        // Для самих карточек используем touchstart на мобилках или mousedown на ПК
-        const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';
-
-        btnT1.addEventListener(activeEvent, (e) => {
-            e.preventDefault();
+        // Используем универсальное событие 'pointerdown' (работает мгновенно и на ПК, и на мобилках)
+        btnT1.addEventListener('pointerdown', (e) => {
             registerClick('team1', e);
         });
 
-        btnT2.addEventListener(activeEvent, (e) => {
-            e.preventDefault();
+        btnT2.addEventListener('pointerdown', (e) => {
             registerClick('team2', e);
         });
     }
@@ -324,15 +312,10 @@
         plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
         plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';
 
-        let clickX, clickY;
-        if (e.touches && e.touches.length > 0) {
-            const rect = targetCard.getBoundingClientRect();
-            clickX = e.touches[0].clientX - rect.left;
-            clickY = e.touches[0].clientY - rect.top;
-        } else {
-            clickX = e.offsetX;
-            clickY = e.offsetY;
-        }
+        // Универсальное получение координат клика/тапа через clientX/clientY
+        const rect = targetCard.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
 
         plusOne.style.left = `${clickX}px`;
         plusOne.style.top = `${clickY}px`;
@@ -341,4 +324,5 @@
         setTimeout(() => plusOne.remove(), 400);
     }
 </script>
+
 
