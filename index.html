@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Кибер-Хаб | Тесты, Квесты и Баттлы</title>
-    <!-- Подключаем библиотеки Firebase через CDN -->
+    <!-- Подключаем Firebase -->
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
     <script src="https://gstatic.com"></script>
+    <!-- Яндекс-скрипт подключаем ОДИН раз в шапке, чтобы он не ломал страницу -->
+    <script src="https://yandex.ru"></script>
     <style>
         body {
             background-color: #0a0a12;
@@ -92,7 +94,11 @@
         iframe {
             border: none;
             width: 100%;
-            height: 800px;
+            height: 600px;
+        }
+        /* Скрываем элементы по умолчанию через класс */
+        .hidden {
+            display: none !important;
         }
         .battle-screen {
             display: flex;
@@ -164,27 +170,42 @@
     <p class="subtitle">Вселенная безумных квестов и тестов от инди-разработчика.</p>
 
     <div class="game-menu">
-        <div class="menu-btn active" id="tab-test">🧠 Тест: Нейросети</div>
+        <div class="menu-btn active" id="tab-test">🧠 Тест: Ннойросети</div>
         <div class="menu-btn" id="tab-battle">💥 Глобальный Баттл</div>
         <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
     </div>
 
-    <div class="container" id="main-content-box">
-        <script src="https://yandex.ru"></script>
-        <iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
+    <div class="container">
+        <!-- БЛОК ТЕСТА: Просто iframe, без коварных скриптов внутри -->
+        <div id="block-test">
+            <iframe src="https://yandex.ru" id="ya-iframe"></iframe>
+        </div>
+
+        <!-- БЛОК БАТТЛА: Изначально скрыт классом hidden -->
+        <div id="block-battle" class="hidden">
+            <div class="battle-screen">
+                <div class="battle-card team-left" id="btn-t1">
+                    <span class="battle-emoji">🥔</span>
+                    <div class="battle-team-name">Скуфы</div>
+                    <div class="battle-counter" id="count-t1">0</div>
+                </div>
+                <div class="battle-card team-right" id="btn-t2">
+                    <span class="battle-emoji">🐈‍⬛</span>
+                    <div class="battle-team-name">Альтушки</div>
+                    <div class="battle-counter" id="count-t2">0</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // ==========================================
-        // НАСТРОЙКА FIREBASE С МАСКИРОВКОЙ КЛЮЧА
-        // ==========================================
-        
+        // МАСКИРОВКА КЛЮЧА
         const keyPart1 = "AIzaSyC6BVbv9Qo_IU1Y8Xc"; 
         const keyPart2 = "qUa3ISolXMMzaeXk"; 
 
         const firebaseConfig = {
             apiKey: keyPart1 + keyPart2, 
-            authDomain: "click-war-super-73fc6.firebaseapp.com",
+            authDomain: "://firebaseapp.com",
             databaseURL: "https://firebaseio.com", 
             projectId: "click-war-super-73fc6",
             storageBucket: "click-war-super-73fc6.firebasestorage.app",
@@ -192,105 +213,60 @@
             appId: "1:1083453927615:web:c525f18ea524019fc3560a"
         };
 
-        // Инициализация базы
-               firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
 
         firebase.auth().signInAnonymously().catch((error) => {
             console.error("Ошибка авторизации:", error.message);
         });
 
+        // Элементы
         const tabTest = document.getElementById('tab-test');
         const tabBattle = document.getElementById('tab-battle');
-        const contentBox = document.getElementById('main-content-box');
+        const blockTest = document.getElementById('block-test');
+        const blockBattle = document.getElementById('block-battle');
 
-        const testHTML = '<script src="https://yandex.ru"><\/script><iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>';
-
-        const battleHTML = '<div class="battle-screen"><div class="battle-card team-left" id="btn-t1"><span class="battle-emoji">🥔</span><div class="battle-team-name">Скуфы</div><div class="battle-counter" id="count-t1">0</div></div><div class="battle-card team-right" id="btn-t2"><span class="battle-emoji">🐈‍⬛</span><div class="battle-team-name">Альтушки</div><div class="battle-counter" id="count-t2">0</div></div></div>';
-
+        // Переключение вкладок БЕЗ перетирания HTML (через скрытие/показ)
         tabTest.addEventListener('click', () => {
             tabBattle.classList.remove('active');
             tabTest.classList.add('active');
-            contentBox.innerHTML = testHTML;
+            blockBattle.classList.add('hidden');
+            blockTest.classList.remove('hidden');
         });
 
         tabBattle.addEventListener('click', () => {
             tabTest.classList.remove('active');
             tabBattle.classList.add('active');
-            contentBox.innerHTML = battleHTML;
-            initClickerLogic();
+            blockTest.classList.add('hidden');
+            blockBattle.classList.remove('hidden');
         });
 
-        function initClickerLogic() {
-            const database = firebase.database();
-            const btnT1 = document.getElementById('btn-t1');
-            const btnT2 = document.getElementById('btn-t2');
-            const countT1 = document.getElementById('count-t1');
-            const countT2 = document.getElementById('count-t2');
+        // Запускаем логику базы сразу, она теперь безопасна
+        const database = firebase.database();
+        const btnT1 = document.getElementById('btn-t1');
+        const btnT2 = document.getElementById('btn-t2');
+        const countT1 = document.getElementById('count-t1');
+        const countT2 = document.getElementById('count-t2');
 
-            database.ref('global_battle/team1').on('value', (snapshot) => {
-                const val = snapshot.val() || 0;
-                countT1.innerText = val.toLocaleString();
-                pulseEffect(countT1);
+        // Защита от пустых значений через (val || 0)
+        database.ref('global_battle/team1').on('value', (snapshot) => {
+            const val = snapshot.val() || 0;
+            countT1.innerText = Number(val).toLocaleString();
+            pulseEffect(countT1);
+        });
+
+        database.ref('global_battle/team2').on('value', (snapshot) => {
+            const val = snapshot.val() || 0;
+            countT2.innerText = Number(val).toLocaleString();
+            pulseEffect(countT2);
+        });
+
+        function registerClick(teamPath, event) {
+            database.ref('global_battle/' + teamPath).transaction((current) => {
+                return (current || 0) + 1;
             });
-
-            database.ref('global_battle/team2').on('value', (snapshot) => {
-                const val = snapshot.val() || 0;
-                countT2.innerText = val.toLocaleString();
-                pulseEffect(countT2);
-            });
-
-            function registerClick(teamPath, event) {
-                database.ref('global_battle/' + teamPath).transaction((current) => {
-                    return (current || 0) + 1;
-                });
-                if (navigator.vibrate) navigator.vibrate(12);
-                createFloatingPlusOne(event);
-            }
-
-            const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';
-
-            btnT1.addEventListener(activeEvent, (e) => {
-                e.preventDefault();
-                registerClick('team1', e);
-            });
-
-            btnT2.addEventListener(activeEvent, (e) => {
-                e.preventDefault();
-                registerClick('team2', e);
-            });
+            if (navigator.vibrate) navigator.vibrate(12);
+            createFloatingPlusOne(event);
         }
 
-        function pulseEffect(el) {
-            el.classList.add('pulse');
-            setTimeout(() => el.classList.remove('pulse'), 100);
-        }
-
-        function createFloatingPlusOne(e) {
-            const targetCard = e.currentTarget;
-            const plusOne = document.createElement('div');
-            plusOne.innerText = '+1';
-            plusOne.style.position = 'absolute';
-            plusOne.style.color = '#ffffff';
-            plusOne.style.fontWeight = 'bold';
-            plusOne.style.fontSize = '28px';
-            plusOne.style.pointerEvents = 'none';
-            plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
-            plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';
-
-            const rect = targetCard.getBoundingClientRect();
-            let clickX, clickY;
-            if (e.touches && e.touches.length > 0) {
-                clickX = e.touches.clientX - rect.left;
-                clickY = e.touches.clientY - rect.top;
-            } else {
-                clickX = e.clientX - rect.left;
-                clickY = e.clientY - rect.top;
-            }
-
-            plusOne.style.left = `${clickX}px`;
-            plusOne.style.top = `${clickY}px`;
-
-            targetCard.appendChild(plusOne);
-            setTimeout(() => plusOne.remove(), 400);
-        }
-
+const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';btnT1.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team1', e);});btnT2.addEventListener(activeEvent, (e) => {e.preventDefault();registerClick('team2', e);});function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 100);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
+                                                                                                                                                                                                                                                                                                                                                                                                            plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();let clickX, clickY;if (e.touches && e.touches.length > 0) {clickX = e.touches[0].clientX - rect.left;clickY = e.touches[0].clientY - rect.top;} else {clickX = e.clientX - rect.left;clickY = e.clientY - rect.top;}plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
