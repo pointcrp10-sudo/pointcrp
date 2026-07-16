@@ -40,6 +40,10 @@
             line-height: 1.5;
             max-width: 650px;
         }
+        @keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+}
         /* Стили для игрового меню */
         .game-menu {
             display: flex;
@@ -190,100 +194,162 @@
     </div>
 
     <script>
-        // ==========================================
-        // НАСТРОЙКА FIREBASE (Вставь свои данные ниже)
-        // ==========================================
-        const firebaseConfig = {
-           apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
-           authDomain: "click-war-dd6cd.firebaseapp.com",
-           databaseURL: "https://click-war-dd6cd-default-rtdb.firebaseio.com",
-           projectId: "click-war-dd6cd",
-           storageBucket: "click-war-dd6cd.firebasestorage.app",
-           messagingSenderId: "666710892313",
-           appId: "1:666710892313:web:73db9df6d3e15c40f02f88"
-        };
+    // ==========================================
+    // НАСТРОЙКА FIREBASE (Вставь свои данные ниже)
+    // ==========================================
+    const firebaseConfig = {
+          apiKey: "AIzaSyBS_iGx0hnBYO9VC8EIJDu6l4o5_iNbrFU",
 
-        // Инициализация базы, если конфиг заполнен
-        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-            firebase.initializeApp(firebaseConfig);
+  authDomain: "click-war-dd6cd.firebaseapp.com",
+
+  databaseURL: "https://click-war-dd6cd-default-rtdb.firebaseio.com",
+
+  projectId: "click-war-dd6cd",
+
+  storageBucket: "click-war-dd6cd.firebasestorage.app",
+
+  messagingSenderId: "666710892313",
+
+  appId: "1:666710892313:web:73db9df6d3e15c40f02f88"
+
+    };
+
+    // Инициализация базы, если конфиг заполнен
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    // Элементы навигации
+    const tabTest = document.getElementById('tab-test');
+    const tabBattle = document.getElementById('tab-battle');
+    const contentBox = document.getElementById('main-content-box');
+
+    // Сохраняем код Яндекс Формы, чтобы вернуть её при переключении обратно
+    const testHTML = `<script src="https://yandex.ru"><\/script><iframe src="https://yandex.ru" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>`;
+
+    // Шаблон разметки для баттла
+    const battleHTML = `
+        <div class="battle-screen">
+            <div class="battle-card team-left" id="btn-t1">
+                <span class="battle-emoji">🥔</span>
+                <div class="battle-team-name">Скуфы</div>
+                <div class="battle-counter" id="count-t1">0</div>
+            </div>
+            <div class="battle-card team-right" id="btn-t2">
+                <span class="battle-emoji">🐈‍⬛</span>
+                <div class="battle-team-name">Альтушки</div>
+                <div class="battle-counter" id="count-t2">0</div>
+            </div>
+        </div>
+    `;
+
+    // Переключение на вкладку ТЕСТ
+    tabTest.addEventListener('click', () => {
+        tabBattle.classList.remove('active');
+        tabTest.classList.add('active');
+        contentBox.innerHTML = testHTML;
+    });
+
+    // Переключение на вкладку БАТТЛ
+    tabBattle.addEventListener('click', () => {
+        tabTest.classList.remove('active');
+        tabBattle.classList.add('active');
+        contentBox.innerHTML = battleHTML;
+        
+        // Запускаем логику кликера после того, как HTML появился в коробке
+        initClickerLogic();
+    });
+
+    // Логика работы кликера
+    function initClickerLogic() {
+        if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+            document.getElementById('count-t1').innerText = "ERR";
+            document.getElementById('count-t2').innerText = "ERR";
+            console.error("Firebase не настроен!");
+            return;
         }
 
-        // Элементы навигации
-        const tabTest = document.getElementById('tab-test');
-        const tabBattle = document.getElementById('tab-battle');
-        const contentBox = document.getElementById('main-content-box');
+        const database = firebase.database();
+        const btnT1 = document.getElementById('btn-t1');
+        const btnT2 = document.getElementById('btn-t2');
+        const countT1 = document.getElementById('count-t1');
+        const countT2 = document.getElementById('count-t2');
 
-        // Сохраняем код Яндекс Формы, чтобы вернуть её при переключении обратно
-        const testHTML = `<script src="https://forms.yandex.ru/_static/embed.js"><\/script><iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"><\/iframe>`;
-
-        // Шаблон разметки для баттла
-        const battleHTML = `
-            <div class="battle-screen">
-                <div class="battle-card team-left" id="btn-t1">
-                    <span class="battle-emoji">🥔</span>
-                    <div class="battle-team-name">Скуфы</div>
-                    <div class="battle-counter" id="count-t1">0</div>
-                </div>
-                <div class="battle-card team-right" id="btn-t2">
-                    <span class="battle-emoji">🐈‍⬛</span>
-                    <div class="battle-team-name">Альтушки</div>
-                    <div class="battle-counter" id="count-t2">0</div>
-                </div>
-            </div>
-        `;
-
-        // Переключение на вкладку ТЕСТ
-        tabTest.addEventListener('click', () => {
-            tabBattle.classList.remove('active');
-            tabTest.classList.add('active');
-            contentBox.innerHTML = testHTML;
+        // Подписка на онлайн-обновления счетчиков
+        database.ref('global_battle/team1').on('value', (snapshot) => {
+            const val = snapshot.val() || 0;
+            countT1.innerText = val.toLocaleString();
+            pulseEffect(countT1);
         });
 
-        // Переключение на вкладку БАТТЛ
-        tabBattle.addEventListener('click', () => {
-            tabTest.classList.remove('active');
-            tabBattle.classList.add('active');
-            contentBox.innerHTML = battleHTML;
+        database.ref('global_battle/team2').on('value', (snapshot) => {
+            const val = snapshot.val() || 0;
+            countT2.innerText = val.toLocaleString();
+            pulseEffect(countT2);
+        });
+
+        // Функция отправки клика в Firebase
+        function registerClick(teamPath, event) {
+            database.ref('global_battle/' + teamPath).transaction((current) => {
+                return (current || 0) + 1;
+            });
             
-            // Запускаем логику кликера после того, как HTML появился в коробке
-            initClickerLogic();
+            // Виброотклик на смартфонах
+            if (navigator.vibrate) navigator.vibrate(12);
+
+            // Создаем красивый вылетающий текст "+1" в месте клика
+            createFloatingPlusOne(event);
+        }
+
+        // Быстрый отклик на мобильных устройствах (touchstart вместо click)
+        const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';
+
+        btnT1.addEventListener(activeEvent, (e) => {
+            e.preventDefault();
+            registerClick('team1', e);
         });
 
-        // Логика работы кликера
-        function initClickerLogic() {
-            if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-                document.getElementById('count-t1').innerText = "ERR";
-                document.getElementById('count-t2').innerText = "ERR";
-                console.error("Firebase не настроен!");
-                return;
-            }
+        btnT2.addEventListener(activeEvent, (e) => {
+            e.preventDefault();
+            registerClick('team2', e);
+        });
+    }
 
-            const database = firebase.database();
-            const btnT1 = document.getElementById('btn-t1');
-            const btnT2 = document.getElementById('btn-t2');
-            const countT1 = document.getElementById('count-t1');
-           const countT2 = document.getElementById('count-t2');
-            // Подписка на онлайн-обновления счетчиков
-            database.ref('global_battle/team1').on('value', (snapshot) => {const val = snapshot.val() || 0;
-                                                                           countT1.innerText = val.toLocaleString();
-                                                                           pulseEffect(countT1);
-                                                                          }); 
-            database.ref('global_battle/team2').on('value', (snapshot) => {const val = snapshot.val() || 0;
-                                                                           countT2.innerText = val.toLocaleString();
-                                                                           pulseEffect(countT2);
-                                                                          });
-            // Функция отправки клика в Firebasefunction 
-            registerClick(teamPath) {database.ref('global_battle/' + teamPath).transaction((current) => {return (current || 0) + 1;
-                                                                                                        });
-                                     if (navigator.vibrate) navigator.vibrate(12); 
-            // Виброотклик на смартфонах}
-            // Быстрый отклик на мобильных устройствах (touchstart вместо click)
-            const activeEvent = 'touchstart' in window ? 'touchstart' : 'mousedown';
-                                     btnT1.addEventListener(activeEvent, (e) => {e.preventDefault();
-                                                                                 registerClick('team1');
-                                                                                });
-                                     btnT2.addEventListener(activeEvent, (e) => {e.preventDefault();
-                                                                                 registerClick('team2');
-                                                                                });
-                                    }function pulseEffect(el) {el.classList.add('pulse');
-                                                               setTimeout(() => el.classList.remove('pulse'), 100);}
+    // Эффект увеличения цифр
+    function pulseEffect(el) {
+        el.classList.add('pulse');
+        setTimeout(() => el.classList.remove('pulse'), 100);
+    }
+
+    // Функция создания вылетающего "+1"
+    function createFloatingPlusOne(e) {
+        const targetCard = e.currentTarget;
+        const plusOne = document.createElement('div');
+        plusOne.innerText = '+1';
+        plusOne.style.position = 'absolute';
+        plusOne.style.color = '#ffffff';
+        plusOne.style.fontWeight = 'bold';
+        plusOne.style.fontSize = '24px';
+        plusOne.style.pointerEvents = 'none';
+        plusOne.style.animation = 'floatUp 0.4s ease-out forwards';
+        plusOne.style.textShadow = '0 0 8px rgba(255,255,255,0.8)';
+
+        // Координаты тапа/клика относительно карточки
+        let clickX, clickY;
+        if (e.touches && e.touches[0]) {
+            const rect = targetCard.getBoundingClientRect();
+            clickX = e.touches[0].clientX - rect.left;
+            clickY = e.touches[0].clientY - rect.top;
+        } else {
+            clickX = e.offsetX;
+            clickY = e.offsetY;
+        }
+
+        plusOne.style.left = `${clickX}px`;
+        plusOne.style.top = `${clickY}px`;
+
+        targetCard.appendChild(plusOne);
+        setTimeout(() => plusOne.remove(), 400);
+    }
+</script>
+
