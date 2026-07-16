@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Кибер-Хаб | Тесты, Квесты и Баттлы</title>
+    <title>Кибер-Хаб | Тест Нейросети</title>
     <style>
         body {
             background-color: #0a0a12;
@@ -17,8 +17,6 @@
             align-items: center;
             min-height: 100vh;
             box-sizing: border-box;
-            -webkit-user-select: none;
-            user-select: none;
         }
         h1 {
             color: #00f2fe;
@@ -77,112 +75,16 @@
             max-width: 750px;
             background: #141423;
             border-radius: 16px;
-            padding: 30px 15px;
+            padding: 15px;
             box-shadow: 0 0 25px rgba(0, 242, 254, 0.2);
             border: 1px solid rgba(0, 242, 254, 0.15);
             box-sizing: border-box;
             overflow: hidden;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-        .hidden {
-            display: none !important;
-        }
-        .test-promo {
-            text-align: center;
-            max-width: 500px;
-            padding: 20px;
-        }
-        .test-promo h3 {
-            font-size: 24px;
-            color: #fff;
-            margin-bottom: 15px;
-        }
-        .test-promo p {
-            color: #8892b0;
-            font-size: 16px;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-        .action-btn {
-            display: inline-block;
-            background: linear-gradient(45deg, #00f2fe, #4facfe);
-            color: #000;
-            font-weight: bold;
-            padding: 15px 35px;
-            border-radius: 50px;
-            text-decoration: none;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
-            transition: all 0.3s ease;
-        }
-        .action-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.7);
-        }
-        .battle-screen {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        iframe {
+            border: none;
             width: 100%;
-            height: 350px;
-        }
-        @media (min-width: 600px) {
-            .battle-screen { flex-direction: row; }
-        }
-        .battle-card {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 14px;
-            cursor: pointer;
-            transition: transform 0.05s ease, box-shadow 0.1s ease;
-            position: relative;
-            padding: 20px;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .team-left {
-            background: linear-gradient(135deg, #111e25, #1a3038);
-            border: 2px solid #00f2fe;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
-        }
-        .team-right {
-            background: linear-gradient(135deg, #2b1424, #3a162f);
-            border: 2px solid #ff007f;
-            box-shadow: 0 0 10px rgba(255, 0, 127, 0.1);
-        }
-        .battle-card:active { transform: scale(0.97); }
-        .team-left:active { box-shadow: 0 0 25px rgba(0, 242, 254, 0.5); }
-        .team-right:active { box-shadow: 0 0 25px rgba(255, 0, 127, 0.5); }
-        
-        .battle-emoji { font-size: 55px; margin-bottom: 5px; }
-        .battle-team-name {
-            font-size: 22px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        .battle-counter {
-            font-size: 38px;
-            font-weight: bold;
-            font-family: monospace;
-        }
-        .team-left .battle-counter { text-shadow: 0 0 10px #00f2fe; color: #00f2fe; }
-        .team-right .battle-counter { text-shadow: 0 0 10px #ff007f; color: #ff007f; }
-
-        .pulse { animation: pulseAnim 0.1s ease-in-out; }
-        @keyframes pulseAnim {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.12); }
-            100% { transform: scale(1); }
-        }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+            height: 700px;
         }
     </style>
 </head>
@@ -191,91 +93,17 @@
     <h1>🤖 ИНТЕРАКТИВНЫЙ УГОЛОК</h1>
     <p class="subtitle">Вселенная безумных квестов и тестов от инди-разработчика.</p>
 
+    <!-- ИГРОВОЕ МЕНЮ (Теперь это просто ссылки на разные страницы) -->
     <div class="game-menu">
-        <div class="menu-btn active" id="tab-test">🧠 Тест: Нейросети</div>
-        <div class="menu-btn" id="tab-battle">💥 Глобальный Баттл</div>
+        <a href="index.html" class="menu-btn active">🧠 Тест: Нейросети</a>
+        <a href="battle.html" class="menu-btn">💥 Глобальный Баттл</a>
         <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
     </div>
 
     <div class="container">
-        <!-- ТЕСТ: Используем бронебойную сокращенную ссылку, Яндекс её не отследит -->
-        <div id="block-test">
-            <div class="test-promo">
-                <h3>Нейросети: Прокачай свой интеллект</h3>
-                <p>Узнай, насколько хорошо ты разбираешься в искусственном интеллекте, сможешь ли ты приручить Midjourney и не заменит ли тебя робот в ближайшем будущем.</p>
-                <a href="https://clck.ru/3UpThB" target="_blank" class="action-btn" id="test-link">Пройти тест 🚀</a>
-            </div>
-        </div>
-
-        <!-- БЛОК БАТТЛА -->
-        <div id="block-battle" class="hidden">
-            <div class="battle-screen">
-                <div class="battle-card team-left" id="btn-t1">
-                    <span class="battle-emoji">🥔</span>
-                    <div class="battle-team-name">Скуфы</div>
-                    <div class="battle-counter" id="count-t1">23 410</div>
-                </div>
-                <div class="battle-card team-right" id="btn-t2">
-                    <span class="battle-emoji">🐈‍⬛</span>
-                    <div class="battle-team-name">Альтушки</div>
-                    <div class="battle-counter" id="count-t2">19 854</div>
-                </div>
-            </div>
-        </div>
+        <!-- Официальный чистый скрипт встраивания от Яндекса -->
+       <script src="https://forms.yandex.ru/_static/embed.js"></script><iframe src="https://forms.yandex.ru/u/6a55097c1f1eb51542d96517?iframe=1" frameborder="0" name="ya-form-6a55097c1f1eb51542d96517" width="650"></iframe>
     </div>
 
-    <script>
-        // Чистокровное и мгновенное переключение вкладок без участия внешних библиотек
-        const tabTest = document.getElementById('tab-test');
-        const tabBattle = document.getElementById('tab-battle');
-        const blockTest = document.getElementById('block-test');
-        const blockBattle = document.getElementById('block-battle');
-
-        tabTest.addEventListener('click', () => {
-            tabBattle.classList.remove('active');
-            tabTest.classList.add('active');
-            blockBattle.classList.add('hidden');
-            blockTest.classList.remove('hidden');
-        });
-
-        tabBattle.addEventListener('click', () => {
-            tabTest.classList.remove('active');
-            tabBattle.classList.add('active');
-            blockTest.classList.add('hidden');
-            blockBattle.classList.remove('hidden');
-        });
-
-        // ЛОКАЛЬНАЯ ЛОГИКА КЛИКЕРА (БЕЗ FIREBASE)
-        const btnT1 = document.getElementById('btn-t1');
-        const btnT2 = document.getElementById('btn-t2');
-        const countT1 = document.getElementById('count-t1');
-        const countT2 = document.getElementById('count-t2');
-
-        // Инициализируем базовые красивые цифры в памяти, чтобы в Shorts выглядело солидно
-        let score1 = parseInt(localStorage.getItem('local_scuf_clicks')) || 14250;
-        let score2 = parseInt(localStorage.getItem('local_alt_clicks')) || 13980;
-
-        // Выводим на экран
-        countT1.innerText = score1.toLocaleString();
-        countT2.innerText = score2.toLocaleString();
-
-        // Клик по левой карточке
-        btnT1.addEventListener('click', (e) => {
-            score1++;
-            localStorage.setItem('local_scuf_clicks', score1);
-            countT1.innerText = score1.toLocaleString();
-            pulseEffect(countT1);
-            createFloatingPlusOne(e);
-            if (navigator.vibrate) navigator.vibrate(10);
-        });
-
-        // Клик по правой карточке
-        btnT2.addEventListener('click', (e) => {
-            score2++;
-            localStorage.setItem('local_alt_clicks', score2);
-            countT2.innerText = score2.toLocaleString();
-            pulseEffect(countT2);
-            createFloatingPlusOne(e);
-if (navigator.vibrate) navigator.vibrate(10);});
-        // СИМУЛЯЦИЯ ОНЛАЙНА: Живой фон, прибавляет случайные клики раз в секунду
-        setInterval(() => {if (Math.random() > 0.3) {score1 += Math.floor(Math.random() * 3) + 1;countT1.innerText = score1.toLocaleString();pulseEffect(countT1);}if (Math.random() > 0.4) {score2 += Math.floor(Math.random() * 3) + 1;countT2.innerText = score2.toLocaleString();pulseEffect(countT2);}}, 1200);function pulseEffect(el) {el.classList.add('pulse');setTimeout(() => el.classList.remove('pulse'), 80);}function createFloatingPlusOne(e) {const targetCard = e.currentTarget;const plusOne = document.createElement('div');plusOne.innerText = '+1';plusOne.style.position = 'absolute';plusOne.style.color = '#ffffff';plusOne.style.fontWeight = 'bold';plusOne.style.fontSize = '28px';plusOne.style.pointerEvents = 'none';plusOne.style.animation = 'floatUp 0.4s ease-out forwards';plusOne.style.textShadow = '0 0 10px rgba(255,255,255,0.9)';const rect = targetCard.getBoundingClientRect();const clickX = e.clientX - rect.left;const clickY = e.clientY - rect.top;plusOne.style.left = ${clickX}px;plusOne.style.top = ${clickY}px;targetCard.appendChild(plusOne);setTimeout(() => plusOne.remove(), 400);}
+</body>
+</html>
