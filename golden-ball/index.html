@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Золотой Мяч: ТОП-30</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://yandex.ru/games/sdk/v2"></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <div class="game-container">
+        <h1 id="main-title">⚽ Золотой Мяч: ТОП‑30 ⚽</h1>
+
+        <!-- Главное меню -->
+        <div id="main-menu">
+            <div class="level-card" onclick="startLevel1()">
+                <div class="level-icon">📋</div>
+                <div class="level-title">Уровень 1</div>
+                <div class="level-desc">Расставь 30 номинантов</div>
+            </div>
+            <div class="level-card" onclick="startLevel2()">
+                <div class="level-icon">⚔️</div>
+                <div class="level-title">Уровень 2</div>
+                <div class="level-desc">Крестики-нолики с ИИ</div>
+            </div>
+        </div>
+
+        <!-- Карточка игрока (для первого уровня) -->
+        <div id="player-card" style="display:none;">
+            <div id="card-placeholder">🏆⚽🏆</div>
+        </div>
+
+        <!-- Сетка 5×6 для первого уровня -->
+        <div id="grid-wrapper" style="display:none;">
+            <div id="grid-container"></div>
+        </div>
+
+        <!-- Поле второго уровня -->
+        <div id="tic-tac-toe" style="display:none;">
+            <div id="ttt-board"></div>
+        </div>
+
+        <!-- Модалка выбора игроков -->
+        <div id="player-select-modal" style="display:none;">
+            <div class="modal-content">
+                <h2>Выберите игроков</h2>
+                <div class="select-group">
+                    <label>Вы (X):</label>
+                    <select id="player1-select"></select>
+                    <img id="player1-avatar" src="" alt="">
+                </div>
+                <div class="select-group">
+                    <label>Соперник (O):</label>
+                    <select id="player2-select"></select>
+                    <img id="player2-avatar" src="" alt="">
+                </div>
+                <button id="start-ttt-btn">Начать матч!</button>
+            </div>
+        </div>
+
+        <!-- Кнопка "В меню" -->
+        <button id="to-menu-btn" onclick="goToMainMenu()" style="display:none;">← В меню</button>
+    </div>
+</body>
+</html>
