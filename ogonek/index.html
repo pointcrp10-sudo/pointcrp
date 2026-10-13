@@ -1,0 +1,3299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Огонёк во тьме: 7 Ночей</title>
+    <style>
+        /* ===== СТИЛИ (без изменений) ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #0a0806;
+            color: #f0e8e0;
+            font-family: 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            overflow-x: hidden;
+            transition: background-color 1.2s ease;
+            position: relative;
+        }
+        #vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            transition: background 0.3s ease;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.9) 100%);
+        }
+        #fire-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            max-width: 720px;
+            min-height: 100vh;
+            padding: 20px 15px 30px;
+            position: relative;
+            z-index: 5;
+            overflow-y: auto;
+        }
+        .active-screen { display: flex !important; }
+        h1 {
+            font-size: 38px;
+            color: #ff6600;
+            text-shadow: 0 0 30px rgba(255,102,0,0.6);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .description {
+            font-size: 18px;
+            color: #d4c8b8;
+            text-align: center;
+            margin-bottom: 24px;
+            line-height: 1.6;
+            padding: 0 8px;
+        }
+        .btn {
+            background: #221105;
+            border: 2px solid #663311;
+            color: #f0e8e0;
+            padding: 18px 24px;
+            font-size: 19px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 8px 0;
+            width: 100%;
+            max-width: 380px;
+            transition: all 0.25s ease;
+            text-align: center;
+            touch-action: manipulation;
+            user-select: none;
+        }
+        .btn:hover { background: #44220a; border-color: #ff9933; box-shadow: 0 0 25px rgba(255,153,51,0.6); }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled { opacity: 0.5; pointer-events: none; }
+        .btn.hidden { display: none; }
+        #story-container {
+            width: 100%;
+            background: rgba(15,15,15,0.95);
+            border: 2px solid #665544;
+            padding: 24px 18px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.9);
+            margin-bottom: 18px;
+            z-index: 10;
+            transition: border-color 0.4s, box-shadow 0.4s;
+            min-height: 140px;
+            position: relative;
+        }
+        #story-text {
+            font-size: 20px;
+            line-height: 1.8;
+            color: #f0e8e0;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+            white-space: pre-wrap;
+        }
+        #choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        #choices-container .btn { font-size: 17px; padding: 14px 16px; max-width: 100%; }
+        #fire-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin: 10px 0;
+            z-index: 10;
+            touch-action: manipulation;
+            user-select: none;
+            position: relative;
+        }
+        #fire-btn {
+            font-size: 120px;
+            cursor: pointer;
+            filter: drop-shadow(0 0 50px #ff5500);
+            transition: transform 0.1s ease, filter 0.4s, opacity 0.3s;
+            text-shadow: 0 0 60px #ff8800;
+            display: block;
+            line-height: 1.2;
+            animation: flicker 1.2s infinite alternate;
+            position: relative;
+            z-index: 3;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #fire-btn.fire-disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: drop-shadow(0 0 15px #663311);
+        }
+        #fire-btn:active { transform: scale(0.88); }
+        #fire-sub {
+            font-size: 16px;
+            color: #aa9977;
+            text-align: center;
+            margin-top: 4px;
+        }
+        @keyframes flicker {
+            0% { text-shadow: 0 0 40px #ff5500, 0 0 80px #ff8800; }
+            25% { text-shadow: 0 0 60px #ff6600, 0 0 100px #ff9900; }
+            50% { text-shadow: 0 0 30px #ff4400, 0 0 70px #ff7700; }
+            75% { text-shadow: 0 0 70px #ff5500, 0 0 120px #ffaa00; }
+            100% { text-shadow: 0 0 40px #ff5500, 0 0 80px #ff8800; }
+        }
+        .bar-container, .sub-bar-container {
+            width: 100%;
+            max-width: 380px;
+            height: 14px;
+            background: #111;
+            border: 1px solid #665544;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 4px;
+            z-index: 10;
+        }
+        #bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff3300, #ffaa00);
+            box-shadow: 0 0 20px #ff5500;
+            transition: width 0.3s;
+        }
+        #fear-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #aa88ff, #4400aa);
+            box-shadow: 0 0 15px #6600ff;
+            transition: width 0.3s;
+        }
+        #boss-container, #boss3-container {
+            margin-top: 10px;
+            text-align: center;
+            width: 100%;
+            max-width: 380px;
+        }
+        #boss-bar, #boss3-bar {
+            height: 100%;
+            background: #440000;
+            width: 100%;
+            transition: width 0.3s;
+        }
+        .hud {
+            font-size: 17px;
+            color: #cdc0b0;
+            margin: 2px 0;
+            z-index: 10;
+        }
+        .hud-small {
+            font-size: 14px;
+            color: #b0a090;
+            margin: 1px 0;
+        }
+        .hud span { color: #ff9933; font-weight: bold; }
+        .ability-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 8px 0;
+            z-index: 10;
+        }
+        .ability-bar.hidden { display: none !important; }
+        .ability-btn {
+            background: #1a1a1a;
+            border: 1px solid #663311;
+            color: #f0e8e0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: all 0.2s;
+            font-family: 'Georgia', serif;
+        }
+        .ability-btn:active { transform: scale(0.95); }
+        .ability-btn:disabled { opacity: 0.4; pointer-events: none; }
+        .ability-btn .cooldown { font-size: 12px; color: #ff8844; margin-left: 4px; }
+        .shop-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 18px;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .shop-grid::-webkit-scrollbar { width: 5px; }
+        .shop-grid::-webkit-scrollbar-track { background: #1a1a1a; }
+        .shop-grid::-webkit-scrollbar-thumb { background: #663311; border-radius: 6px; }
+        .shop-item {
+            background: rgba(25,15,5,0.85);
+            border: 1px solid #553311;
+            padding: 14px 18px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .item-info { text-align: left; flex: 1; min-width: 160px; }
+        .item-title { font-size: 18px; color: #ffcc99; margin-bottom: 4px; }
+        .item-cost { font-size: 14px; color: #b0a090; }
+        .buy-btn {
+            background: #44220a;
+            border: 1px solid #884411;
+            color: #fff;
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-family: 'Georgia', serif;
+            font-size: 16px;
+            touch-action: manipulation;
+            white-space: nowrap;
+        }
+        .buy-btn:hover { background: #663311; border-color: #ff9933; }
+        .buy-btn:active { transform: scale(0.95); }
+        .buy-btn.bought { background: #2a1a0a; border-color: #554433; color: #887766; cursor: default; }
+        .inventory-list {
+            font-size: 18px;
+            color: #f0e8e0;
+            text-align: left;
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 20px;
+            line-height: 2.4;
+        }
+        .inv-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #443322;
+            padding: 6px 0;
+        }
+        .inv-item .sell-btn {
+            background: #331100;
+            border: 1px solid #663311;
+            color: #ff9944;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+        }
+        .inv-item .sell-btn:hover { background: #552200; }
+        #radio-report {
+            display: none;
+            background: rgba(20,15,5,0.92);
+            border: 2px solid #886633;
+            border-radius: 10px;
+            padding: 24px;
+            margin: 10px 0;
+            width: 100%;
+            max-width: 480px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            color: #d4c8b0;
+            box-shadow: 0 0 40px rgba(255,150,0,0.25);
+        }
+        #radio-report .title {
+            color: #ffaa44;
+            font-weight: bold;
+            font-size: 20px;
+            text-align: center;
+            border-bottom: 1px solid #664422;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        #radio-report .line { padding: 5px 0; border-bottom: 1px dashed #443322; }
+        #radio-report .highlight { color: #ffcc66; }
+        .achievement-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+            max-width: 480px;
+            margin: 10px 0;
+        }
+        .achievement-item {
+            background: rgba(25,15,5,0.8);
+            border: 1px solid #554433;
+            border-radius: 8px;
+            padding: 10px 16px;
+            flex: 1 0 140px;
+            text-align: center;
+            font-size: 14px;
+            color: #ccc0b0;
+        }
+        .achievement-item.unlocked {
+            border-color: #ff9933;
+            color: #ffdd99;
+            box-shadow: 0 0 20px rgba(255,170,68,0.2);
+        }
+        .achievement-item .ach-title { font-weight: bold; color: #ffcc66; }
+        .note-list {
+            width: 100%;
+            max-width: 480px;
+            text-align: left;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #d4c8b0;
+            margin-bottom: 20px;
+        }
+        .note-item { border-bottom: 1px dashed #443322; padding: 8px 0; }
+        .night-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+            max-width: 480px;
+            margin: 10px 0;
+        }
+        .night-btn {
+            background: #221105;
+            border: 2px solid #663311;
+            color: #f0e8e0;
+            padding: 14px 20px;
+            font-size: 18px;
+            font-family: 'Georgia', serif;
+            cursor: pointer;
+            border-radius: 8px;
+            flex: 1 0 100px;
+            text-align: center;
+            transition: all 0.25s;
+        }
+        .night-btn:hover { background: #44220a; border-color: #ff9933; }
+        .night-btn:disabled { opacity: 0.4; pointer-events: none; }
+        @media (max-width: 480px) {
+            h1 { font-size: 28px; }
+            .description { font-size: 16px; }
+            .btn { font-size: 17px; padding: 16px 18px; }
+            #fire-btn { font-size: 90px; }
+            #story-text { font-size: 18px; }
+            .shop-item { flex-direction: column; align-items: stretch; }
+            .buy-btn { width: 100%; text-align: center; }
+            #radio-report { padding: 16px; }
+            #radio-report .title { font-size: 17px; }
+            .hud { font-size: 15px; }
+            .hud-small { font-size: 13px; }
+            .bar-container, .sub-bar-container { max-width: 100%; }
+            .ability-btn { font-size: 12px; padding: 6px 10px; }
+            .night-btn { flex: 1 0 80px; font-size: 16px; padding: 10px 12px; }
+            #boss-container .btn, #boss3-container .btn { font-size: 16px; padding: 12px; }
+        }
+        .fear-pulse { animation: pulse 1s infinite alternate; }
+        @keyframes pulse {
+            0% { opacity: 0.9; }
+            100% { opacity: 1; transform: scale(1.02); }
+        }
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        #modal-overlay.active { display: flex; }
+        #modal-box {
+            background: #1a120a;
+            border: 2px solid #886633;
+            border-radius: 12px;
+            padding: 30px 24px;
+            max-width: 90%;
+            width: 440px;
+            box-shadow: 0 0 60px rgba(255,150,0,0.3);
+            text-align: center;
+        }
+        #modal-box h2 { color: #ffaa44; margin-bottom: 12px; }
+        #modal-box p { color: #e0d4c8; font-size: 18px; line-height: 1.6; }
+        #modal-box .btn { margin-top: 16px; }
+        .spark {
+            position: fixed;
+            pointer-events: none;
+            z-index: 20;
+            animation: spark-fly 0.9s ease-out forwards;
+            transform: translateY(0) rotate(0deg);
+            opacity: 1;
+        }
+        @keyframes spark-fly {
+            0% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+            100% { opacity: 0; transform: translateY(-160px) scale(0.2) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+<div id="vignette"></div>
+<canvas id="fire-canvas"></canvas>
+<div id="modal-overlay">
+    <div id="modal-box">
+        <h2 id="modal-title">💬</h2>
+        <p id="modal-text">Текст</p>
+        <button class="btn" id="modal-btn">Отмена</button>
+    </div>
+</div>
+
+<!-- ===== МЕНЮ ===== -->
+<div id="menu-screen" class="screen active-screen">
+    <h1>ОГОНЁК ВО ТЬМЕ</h1>
+    <div class="description">Великая Тьма поглотила мир. Только свет вашего очага удерживает её на расстоянии. Продержитесь 7 ночей, и Тьма отступит навсегда.</div>
+    <button class="btn" id="continue-btn" onclick="continueGame()" style="display:none;">▶ Продолжить</button>
+    <button class="btn" onclick="confirmResetToNight1()">🔄 Сбросить ночи и предметы (прогресс ресурсов сохранится)</button>
+    <button class="btn" onclick="switchScreen('shop-screen')">Лавка торговца</button>
+    <button class="btn" onclick="switchScreen('inv-screen')">Инвентарь</button>
+    <button class="btn" onclick="switchScreen('achievements-screen')">🏅 Достижения</button>
+    <button class="btn" onclick="switchScreen('notes-screen')">📜 Записки</button>
+    <button class="btn" onclick="switchScreen('night-select-screen')">🌙 Выбор ночи</button>
+    <button class="btn" onclick="showCredits()">📖 О сюжете</button>
+    <!-- <button class="btn" id="leaderboard-btn" onclick="showLeaderboard()">🏆 Таблица лидеров</button> -->
+    <button class="btn" id="mute-btn" onclick="toggleMute()">🔊 Звук включён</button>
+</div>
+
+<!-- ===== ИГРОВОЙ ЭКРАН ===== -->
+<div id="game-screen" class="screen">
+    <div id="story-container">
+        <div id="story-content">
+            <div id="story-text">Тьма сгущается за окном...</div>
+            <div id="choices-container"></div>
+        </div>
+        <div id="radio-report"></div>
+    </div>
+    <div id="fire-container">
+        <div id="fire-btn" onclick="handleFireClick(event)">🔥</div>
+        <div id="fire-sub">🔥 коснись, чтобы поддержать</div>
+    </div>
+    <div class="ability-bar" id="ability-bar">
+        <button class="ability-btn" id="ability-coal" onclick="useAbility('coal')">🪵 Подбросить <span class="cooldown" id="cd-coal">готов</span></button>
+        <button class="ability-btn" id="ability-pray" onclick="useAbility('pray')">🙏 Молитва <span class="cooldown" id="cd-pray">готов</span></button>
+    </div>
+    <div class="bar-container" id="bar-container"><div id="bar"></div></div>
+    <div class="hud-small">Тепло: <span id="hud-warmth">100</span> / <span id="hud-max-warmth">120</span></div>
+    <div class="sub-bar-container"><div id="fear-bar"></div></div>
+    <div class="hud-small">Страх: <span id="hud-fear">0</span> / 100</div>
+
+    <!-- Босс 7-й ночи (Король Мрака) -->
+    <div id="boss-container" style="display:none;">
+        <div class="hud">Король Мрака: <span id="boss-hp">120</span>/120</div>
+        <div class="bar-container"><div id="boss-bar" style="height:100%; background:#440000; width:100%;"></div></div>
+        <button class="btn" id="attack-boss-btn" onclick="attackBoss()">⚔️ Атаковать Короля</button>
+    </div>
+
+    <!-- Босс 3-й ночи (Теневой Ассасин) -->
+    <div id="boss3-container" style="display:none;">
+        <div class="hud">Теневой Ассасин: <span id="boss3-hp">20</span>/20</div>
+        <div class="bar-container"><div id="boss3-bar" style="height:100%; background:#440000; width:100%;"></div></div>
+        <button class="btn" id="attack-boss3-btn" onclick="attackBoss3()">⚔️ Атаковать Ассасина</button>
+    </div>
+
+    <div class="hud">Уголь: <span id="hud-coal">0.00</span></div>
+    <div class="hud">🍖 Шашлык: <span id="hud-meat">0</span></div>
+    <div class="hud">Ночь: <span id="hud-day">1</span> / 7</div>
+    <div class="hud">До рассвета: <span id="time-counter">0</span>с / <span id="max-time">90</span>с</div>
+    <button class="btn" style="margin-top:20px;" onclick="quitToMenu()">Сдаться и выйти в меню</button>
+</div>
+
+<!-- ===== МАГАЗИН ===== -->
+<div id="shop-screen" class="screen">
+    <h1>ЛАВКА ТОРГОВЦА</h1>
+    <div class="description">Ваш кошелёк: <span id="shop-coal-wallet" style="color:#ff9933; font-weight:bold;">0.00</span> угля.</div>
+    <div class="description" id="merchant-dialog">— Что желаете, путник? Есть редкие вещи. За шашлык тоже даю хорошую цену.</div>
+    <div class="shop-grid" id="shop-grid">
+        <div class="shop-item"><div class="item-info"><div class="item-title">🪵 Еловые поленья</div><div class="item-cost">Цена: 90 угля | снижают утечку тепла на 15%</div></div><button class="buy-btn" data-item="logs" onclick="buyItem('logs', 90)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">🪓 Острая кирка</div><div class="item-cost">Цена: 180 угля | +0.1 угля за клик</div></div><button class="buy-btn" data-item="pickaxe" onclick="buyItem('pickaxe', 180)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">🛡️ Барьер теней</div><div class="item-cost">Цена: 360 угля | полная защита от событий</div></div><button class="buy-btn" data-item="wall" onclick="buyItem('wall', 360)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">✨ Амулет света</div><div class="item-cost">Цена: 120 угля | +20 к макс. теплу</div></div><button class="buy-btn" data-item="blanket" onclick="buyItem('blanket', 120)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">⛏️ Угольная жила</div><div class="item-cost">Цена: 240 угля | +0.2 угля / 5с</div></div><button class="buy-btn" data-item="mine" onclick="buyItem('mine', 240)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">📿 Священный амулет</div><div class="item-cost">Цена: 300 угля | половинный урон от событий, <b>-2 страха/с</b></div></div><button class="buy-btn" data-item="amulet" onclick="buyItem('amulet', 300)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">🕯️ Свеча</div><div class="item-cost">Цена: 150 угля | +2 тепла / 10с</div></div><button class="buy-btn" data-item="candle" onclick="buyItem('candle', 150)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">🪟 Укрепить окна</div><div class="item-cost">Цена: 75 угля | снижает потерю тепла на 10%</div></div><button class="buy-btn" data-item="upgraded_windows" onclick="buyItem('upgraded_windows', 75)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">☯️ Повесить обереги</div><div class="item-cost">Цена: 105 угля | снижает рост страха на 1/с</div></div><button class="buy-btn" data-item="upgraded_charms" onclick="buyItem('upgraded_charms', 105)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">🚪 Укрепить дверь</div><div class="item-cost">Цена: 135 угля | защита от ночных событий</div></div><button class="buy-btn" data-item="upgraded_door" onclick="buyItem('upgraded_door', 135)">Купить</button></div>
+        <div class="shop-item"><div class="item-info"><div class="item-title">🔥 Тепловой кристалл</div><div class="item-cost">Цена: 400 угля | +60 макс. тепла, +2 тепла/с</div></div><button class="buy-btn" data-item="heat_crystal" onclick="buyItem('heat_crystal', 400)">Купить</button></div>
+        <div class="shop-item">
+            <div class="item-info">
+                <div class="item-title">🍖🔥 Шашлычный амулет</div>
+                <div class="item-cost">Цена: 20 🍖 | Удваивает уголь, тепло и снижение страха при клике</div>
+            </div>
+            <button class="buy-btn" data-item="meat_amulet" onclick="buyMeatAmulet()">Купить</button>
+        </div>
+        <div class="shop-item">
+            <div class="item-info">
+                <div class="item-title">🍖 Обменять 50 угля на 1 шашлык</div>
+                <div class="item-cost">Курс: 50 угля = 1 шашлык</div>
+            </div>
+            <button class="buy-btn" onclick="exchangeMeat()">Обменять</button>
+        </div>
+        <div class="shop-item">
+            <div class="item-info">
+                <div class="item-title">🪙 Обменять 10 шашлыка на 470 угля</div>
+                <div class="item-cost">Курс: 10 🍖 = 470 угля</div>
+            </div>
+            <button class="buy-btn" onclick="exchangeMeatToCoal()">Обменять</button>
+        </div>
+        <div class="shop-item" id="merchant-quest"><div class="item-info"><div class="item-title">📜 Задание торговца</div><div class="item-cost" id="quest-desc">Принесите 3 редких камня, чтобы открыть Секретную Ночь.</div></div><button class="buy-btn" onclick="checkQuest()">Сдать камни</button></div>
+        <!-- Блок рекламного камня -->
+        <div class="shop-item" id="ad-stone-container">
+            <div class="item-info">
+                <div class="item-title">💎 Редкий камень за рекламу</div>
+                <div class="item-cost" id="ad-stone-status">Доступно</div>
+            </div>
+            <button class="buy-btn" id="ad-stone-btn" onclick="getStoneViaAd()">Смотреть рекламу</button>
+        </div>
+    </div>
+    <button class="btn" onclick="switchScreen('menu-screen')">В главное меню</button>
+</div>
+
+<!-- ===== ИНВЕНТАРЬ ===== -->
+<div id="inv-screen" class="screen">
+    <h1>ВАШИ ПРИПАСЫ</h1>
+    <div class="description">Купленные улучшения и спасённые люди. Нажмите «Продать», чтобы вернуть 70% стоимости.</div>
+    <div class="inventory-list" id="inventory-list">• Пусто.</div>
+    <button class="btn" onclick="switchScreen('menu-screen')">Назад в меню</button>
+</div>
+
+<!-- ===== ДОСТИЖЕНИЯ ===== -->
+<div id="achievements-screen" class="screen">
+    <h1>🏅 ДОСТИЖЕНИЯ</h1>
+    <div class="description">Ваши успехи</div>
+    <div class="achievement-grid" id="achievement-grid"></div>
+    <div class="description" style="margin-top:20px;">🏆 ПОЛУЧЕННЫЕ КОНЦОВКИ</div>
+    <div class="achievement-grid" id="ending-grid"></div>
+    <button class="btn" onclick="switchScreen('menu-screen')">Назад в меню</button>
+</div>
+
+<!-- ===== ЗАПИСКИ ===== -->
+<div id="notes-screen" class="screen">
+    <h1>📜 НАЙДЕННЫЕ ЗАПИСКИ</h1>
+    <div class="description">Обрывки дневников и писем, проливающих свет на катастрофу</div>
+    <div class="note-list" id="note-list"></div>
+    <button class="btn" onclick="switchScreen('menu-screen')">Назад в меню</button>
+</div>
+
+<!-- ===== ВЫБОР НОЧИ ===== -->
+<div id="night-select-screen" class="screen">
+    <h1>🌙 ВЫБОР НОЧИ</h1>
+    <div class="description">Доступны только пройденные ночи. Ночь считается пройденной, если вы успешно пережили её до рассвета.</div>
+    <div class="night-grid" id="night-grid"></div>
+    <button class="btn" onclick="switchScreen('menu-screen')">Назад в меню</button>
+</div>
+
+<!-- ===== КОНЦОВКА ===== -->
+<div id="ending-screen" class="screen">
+    <h1 id="ending-title">КОНЕЦ</h1>
+    <div id="ending-text" class="description" style="font-size:18px; text-align:left; max-width:500px;"></div>
+    <button class="btn" onclick="switchScreen('menu-screen')">В главное меню</button>
+</div>
+
+<script>
+// ============================================================
+//  ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ SDK
+// ============================================================
+let ysdk = null;
+let isYandex = false;
+
+// ============================================================
+//  ИНИЦИАЛИЗАЦИЯ SDK – c i18n и зелёным индикатором
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof YaGames !== 'undefined') {
+        YaGames.init().then(sdk => {
+            ysdk = sdk;
+            isYandex = true;
+            const lang = ysdk.environment.i18n.lang || 'ru';
+            document.documentElement.setAttribute('lang', lang);
+            if (ysdk.features && ysdk.features.LoadingAPI) {
+                ysdk.features.LoadingAPI.ready();
+            }
+            console.log('Yandex SDK инициализирован');
+        }).catch(e => console.warn('SDK error', e));
+    } else {
+        console.warn('YaGames не определён – возможно, вы запускаете игру вне Яндекс.Игр');
+    }
+});
+
+// ============================================================
+//  ФУНКЦИИ РЕКЛАМЫ – ИСПРАВЛЕННЫЕ ПО ДОКУМЕНТАЦИИ
+// ============================================================
+function showFullscreenAd(onClose) {
+    if (!isYandex || !ysdk) {
+        if (onClose) onClose();
+        return;
+    }
+    try {
+        if (ysdk.adv && typeof ysdk.adv.showFullscreenAdv === 'function') {
+            ysdk.adv.showFullscreenAdv({
+                callbacks: {
+                    onOpen: () => console.log('Fullscreen ad opened'),
+                    onClose: (wasShown) => {
+                        console.log('Fullscreen ad closed, was shown:', wasShown);
+                        if (onClose) onClose();
+                    },
+                    onError: (error) => {
+                        console.error('Fullscreen ad error:', error);
+                        if (onClose) onClose();
+                    }
+                }
+            });
+        } else {
+            console.warn('Реклама недоступна (adv отсутствует)');
+            if (onClose) onClose();
+        }
+    } catch(e) {
+        console.error('Ошибка показа полноэкранной рекламы:', e);
+        if (onClose) onClose();
+    }
+}
+
+function showRewardedAd(onRewarded, onError) {
+    if (!isYandex || !ysdk) {
+        console.warn('SDK не инициализирован, пропускаем рекламу');
+        if (onRewarded) onRewarded();
+        return;
+    }
+    try {
+        if (ysdk.adv && typeof ysdk.adv.showRewardedVideo === 'function') {
+            ysdk.adv.showRewardedVideo({
+                callbacks: {
+                    onOpen: () => console.log('Rewarded ad opened'),
+                    onRewarded: () => {
+                        console.log('Rewarded ad completed');
+                        if (onRewarded) onRewarded();
+                    },
+                    onClose: (wasShown) => {
+                        console.log('Rewarded ad closed, was shown:', wasShown);
+                        if (!wasShown && onRewarded) {
+                            console.warn('Ad was not shown, giving reward as fallback');
+                            onRewarded();
+                        }
+                    },
+                    onError: (error) => {
+                        console.error('Ошибка показа рекламы:', error);
+                        if (onError) onError(error);
+                        else if (onRewarded) onRewarded();
+                    }
+                }
+            });
+        } else {
+            console.warn('Метод showRewardedVideo не найден');
+            if (onError) onError(new Error('Метод не найден'));
+            else if (onRewarded) onRewarded();
+        }
+    } catch(e) {
+        console.error('showRewardedVideo error:', e);
+        if (onError) onError(e);
+        else if (onRewarded) onRewarded();
+    }
+}
+
+// ============================================================
+//  ЛИДЕРБОРД – ИСПРАВЛЕННЫЙ (с правильным извлечением entries)
+// ============================================================
+async function submitScore(meatAmount) {
+    if (!isYandex || !ysdk || !ysdk.leaderboards) return;
+    try {
+        if (typeof ysdk.leaderboards.setScore === 'function') {
+            await ysdk.leaderboards.setScore('meatlb', meatAmount);
+        } else if (typeof ysdk.leaderboards.setLeaderboardScore === 'function') {
+            await ysdk.leaderboards.setLeaderboardScore('meatlb', meatAmount);
+        } else {
+            console.warn('Метод установки счёта не найден');
+        }
+        console.log('Счёт отправлен в лидерборд:', meatAmount);
+    } catch (e) {
+        console.warn('Не удалось отправить счёт:', e);
+    }
+}
+
+async function showLeaderboard() {
+    if (!isYandex || !ysdk) {
+        alert('Таблица лидеров недоступна');
+        return;
+    }
+    try {
+        let result;
+        if (typeof ysdk.leaderboards.getLeaderboardEntries === 'function') {
+            result = await ysdk.leaderboards.getLeaderboardEntries('meatlb', { quantity: 10 });
+        } else if (typeof ysdk.leaderboards.getEntries === 'function') {
+            result = await ysdk.leaderboards.getEntries('meatlb', { quantity: 10 });
+        } else {
+            alert('Метод лидерборда временно недоступен');
+            return;
+        }
+
+        // Извлекаем массив записей: обычно это result.entries, но на всякий случай проверяем
+        let entries;
+        if (Array.isArray(result)) {
+            entries = result;
+        } else if (result && Array.isArray(result.entries)) {
+            entries = result.entries;
+        } else {
+            entries = [];
+        }
+
+        let text = 'Шашлычные Короли:<br><br>';
+        if (entries.length === 0) {
+            text += 'Пока нет записей. Станьте первым!';
+        } else {
+            entries.forEach((entry, i) => {
+                const place = i + 1;
+                const name = entry.player?.name || 'Аноним';
+                const score = entry.score || 0;
+                text += `${place}. ${name} – ${score} 🍖<br>`;
+            });
+        }
+        showModal('🏆 Лидерборд', text);
+    } catch (e) {
+        console.error('Ошибка получения лидерборда:', e);
+        if (e.message && e.message.includes('404')) {
+            alert('Таблица лидеров с именем "meatlb" не найдена. Проверьте название в консоли разработчика.');
+        } else {
+            alert('Не удалось загрузить таблицу лидеров. Попробуйте позже.');
+        }
+    }
+}
+
+// ============================================================
+//  АУДИО – МУЗЫКА И ЗВУКИ
+// ============================================================
+const menuMusic = new Audio('assets/menu_ambient.mp3');
+menuMusic.loop = true;
+menuMusic.volume = 0.3;
+
+const nightMusic = new Audio('assets/night_ambient.mp3');
+nightMusic.loop = true;
+nightMusic.volume = 0.4;
+
+const fireCrackle = new Audio('assets/fire_crackle.mp3');
+fireCrackle.volume = 0.5;
+
+const bossAppearSound = new Audio('assets/boss_appear.mp3');
+bossAppearSound.volume = 0.6;
+
+const bossAttackSound = new Audio('assets/boss_attack.mp3');
+bossAttackSound.volume = 0.4;
+
+let soundMuted = false;
+
+// ============================================================
+//  ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+// ============================================================
+const G = {
+    coal: 0,
+    meat: 0,
+    maxMeatRecord: 0,
+    warmth: 100,
+    maxWarmth: 120,
+    fear: 0,
+    timeSurvived: 0,
+    coalEarnedThisRound: 0,
+    day: 1,
+    isSecretNight: false,
+    isInfinite: false,
+    isDayPhase: false,
+    nightPreviewActive: false,
+    isGameOver: false,
+    nightPaused: false,
+    nightElapsedReal: 0,
+    nightStartTime: 0,
+    nightCounters: {
+        mineCounter: 0,
+        candleCounter: 0,
+        infiniteCounter: 0,
+        survivorAutoTapTimer: 0,
+        randomEventTimer: 0,
+        heatCrystalCounter: 0
+    },
+    upgrades: {
+        logs: false, pickaxe: false, wall: false, blanket: false,
+        mine: false, amulet: false, candle: false,
+        upgraded_windows: false, upgraded_charms: false, upgraded_door: false,
+        quest_amulet: false, heat_crystal: false,
+        meat_amulet: false
+    },
+    rescued: [],
+    flags: {
+        metMerchant: false, foundOldMap: false, usedArtifact: false,
+        finalChoice: null, questRareStones: 0, merchantQuestActive: false,
+        secretNightUnlocked: false, secretNightCompleted: false,
+        nightsCompleted: {},
+        notesAdded: [],
+        talkedToAnna: false,
+        talkedToVera: false,
+        talkedToDarya: false,
+        firstHeraldMet: false,
+        veraSaved: false,
+        annaSaved: false,
+        daryaSaved: false,
+        night1Done: false,
+        night2Done: false,
+        night3Done: false,
+        night4Done: false,
+        night5Done: false,
+        night6Done: false,
+        night7Done: false,
+        secretNightDone: false,
+        boughtAmulet: false,
+        boughtWall: false,
+        boughtCandle: false,
+        boughtBlanket: false,
+        boughtHeatCrystal: false,
+        boughtPickaxe: false,
+        boughtMine: false,
+        boughtWindows: false,
+        boughtCharms: false,
+        boughtDoor: false,
+        lastAdStoneTime: 0
+    },
+    playerName: 'Выживший',
+    shelterBonus: { warmthLossReduce: 0, fearReduce: 0, eventProtect: 0 },
+    coalCooldown: 0,
+    prayCooldown: 0,
+    heraldDaysSurvived: 0,
+    panicActive: false,
+    panicTimer: 0,
+    panicImmunity: 0,
+    eventActive: false,
+    dayEventsTriggered: {},
+    notes: [],
+    achievements: [],
+    endings: [],
+    rareStones: 0,
+    gameInterval: null,
+    animationFrame: null,
+    lastParticleSpawn: 0,
+    clickCounter: 0,
+    bossActive: false,
+    bossHits: 0,
+    bossMaxHits: 120,
+    bossAttackTimer: 0,
+    boss3Active: false,
+    boss3Hits: 0,
+    boss3MaxHits: 20,
+    boss3AttackTimer: 0,
+    boss3Defeated: false,
+    secretEventTimer: 0,
+    werewolfBribed: false,
+    saveCounter: 0,
+};
+
+const MAX_FEAR = 100;
+const NIGHT_DURATION = 90;
+const SECRET_NIGHT_DURATION = 300;
+const SAVE_VERSION = 5;
+
+// ============================================================
+//  КОНСТАНТЫ (без изменений)
+// ============================================================
+const MERCHANT_FUNNY_PHRASES = [
+    "— Ты уверен, что это поможет? Я бы на твоём месте купил ещё шашлык.",
+    "— Огонь горит, уголь тлеет, а ты всё покупаешь. Мне это нравится!",
+    "— Слышал, Тьма заказала пиццу. Но я продал ей только уголь.",
+    "— Шашлык — это не еда, это состояние души. Бери амулет!",
+    "— Торговля — единственное, что греет меня в этой тьме. Ну, и твой костёр."
+];
+
+const SURVIVOR_TYPES = {
+    anna: { name: 'Анна (инженер)', story: 'знает, как достать много угля', emoji: '⚙️' },
+    vera: { name: 'Вера (врач)', story: 'лечит душевные раны', emoji: '💉' },
+    darya: { name: 'Дарья (лесник)', story: 'знает безопасные тропы', emoji: '🌲' },
+    generic: { name: 'Беженец', story: 'обычный выживший', emoji: '👤' }
+};
+const GENERIC_NAMES = ['Старик', 'Раненый солдат', 'Девушка-подросток', 'Мужчина в лохмотьях', 'Ребёнок', 'Женщина с младенцем'];
+
+const RADIO_PHRASES = [
+    "Город окутан тишиной, лишь изредка слышны крики.",
+    "По улицам бродят одинокие фигуры, они не люди.",
+    "Сирены молчат. Спасатели не придут.",
+    "Говорят, Тьма стирает воспоминания. Я уже не помню лиц.",
+    "Последний оплот света — костёр. Держитесь за свет."
+];
+
+const ACHIEVEMENTS = [
+    { id: 'fearless', title: 'Бесстрашный', desc: 'Пройти ночь со страхом 0', check: () => G.fear === 0 && G.timeSurvived >= (G.isSecretNight ? SECRET_NIGHT_DURATION : NIGHT_DURATION) },
+    { id: 'minimalist', title: 'Минималист', desc: 'Победить, не купив ни одного улучшения', check: () => (G.endings.includes('victory') || G.endings.includes('true_victory')) && Object.values(G.upgrades).every(v => v === false) },
+    { id: 'savior', title: 'Спаситель', desc: 'Спасти 5 выживших', check: () => G.rescued.length >= 5 },
+    { id: 'collector', title: 'Коллекционер', desc: 'Собрать 5 записок', check: () => G.notes.length >= 5 },
+    { id: 'builder', title: 'Строитель', desc: 'Улучшить убежище (окна и дверь)', check: () => G.upgrades.upgraded_windows && G.upgrades.upgraded_door },
+    { id: 'shaman', title: 'Шаман', desc: 'Повесить обереги', check: () => G.upgrades.upgraded_charms },
+    { id: 'invincible', title: 'Неуязвимый', desc: 'Пережить все встречи с Теневым Вестником на 5-7 ночах', check: () => G.heraldDaysSurvived >= 3 },
+    { id: 'diplomat', title: 'Дипломат', desc: 'Поговорить со всеми уникальными выжившими', check: () => G.flags.talkedToAnna && G.flags.talkedToVera && G.flags.talkedToDarya },
+    { id: 'archivist', title: 'Архивариус', desc: 'Собрать все 20 записок', check: () => G.flags.notesAdded.length === LORE_NOTES.length },
+    { id: 'batya', title: 'Батя', desc: 'Накопить 100 кусков шашлыка', check: () => G.meat >= 100 }
+];
+
+const ENDINGS = [
+    { id: 'true_victory', label: '🌟 Истинная победа' },
+    { id: 'victory', label: '✨ Победа' },
+    { id: 'defeat', label: '💀 Поражение' },
+    { id: 'secret_victory', label: '🔴 Секретная победа (Кровавая луна)' },
+    { id: 'dark_friends', label: '👥 Тёмные друзья' },
+    { id: 'insanity', label: '🌀 Безумие' }
+];
+
+const SELL_PRICES = {
+    logs: 63, pickaxe: 126, wall: 252, blanket: 84, mine: 168,
+    amulet: 210, candle: 105, upgraded_windows: 52, upgraded_charms: 73,
+    upgraded_door: 94, heat_crystal: 280
+};
+
+const LORE_NOTES = [
+    { id: 'note_1_1', text: 'Дневник: «Туман не рассеивается. Соседи говорят, с востока идёт что‑то живое, но не человек. Я заколотил ставни.»', volume: 1 },
+    { id: 'note_1_2', text: 'Письмо: «Профессор Ковальский утверждает, что тьма имеет плотность. Она вытесняет воздух. Правительство хранит молчание.»', volume: 1 },
+    { id: 'note_1_3', text: 'Обрывок газеты: «Электричество гаснет. Последняя электростанция остановилась в 3:42. Свечи горят вполсилы.»', volume: 1 },
+    { id: 'note_1_4', text: 'Записка учёного: «Великая Тьма поглощает не только свет, но и тепловое излучение. Мы мёрзнем среди лета.»', volume: 1 },
+    { id: 'note_2_1', text: 'Дневник инженера Анны: «Генераторы не запускаются. Искра гаснет, не успев родиться. Надо искать уголь под землёй.»', volume: 2 },
+    { id: 'note_2_2', text: 'Медицинский журнал Веры: «Пациенты слышат шёпот. Они называют его Голосом Тьмы. Передаётся при длительном визуальном контакте с мраком.»', volume: 2 },
+    { id: 'note_2_3', text: 'Лесник Дарья: «Тропы исчезли. Деревья покрыты чёрной слизью. В лес можно ходить только с амулетом.»', volume: 2 },
+    { id: 'note_2_6', text: 'Найдено в руинах: «Вестник приходит к одиноким. Не смотри ему в глаза — узнаешь свою смерть.»', volume: 2 },
+    { id: 'note_3_3', text: 'Ритуал: «Три реликвии — Свет, Вера, Надежда — способны разбить сердце Короля. Они сокрыты в ночи.»', volume: 3 },
+    { id: 'note_3_4', text: 'Пророчество: «Когда седьмая ночь падёт, Кровавая луна укажет путь. Лишь чистый сердцем развеет Тьму.»', volume: 3 },
+    { id: 'note_3_5', text: 'Записка Хранителя: «Я был первым. Думал, что повелеваю Тьмой, но она лишь ждала. Теперь я её голос.»', volume: 3 },
+    { id: 'note_3_6', text: 'Послание: «Если ты читаешь это — я мёртв. Свет внутри тебя сильнее. Не дай ему погаснуть.»', volume: 3 },
+    { id: 'note_herald_1', text: 'Встретил Вестника. Он говорил о моём одиночестве, и я почувствовал холод не от ветра, а от мысли, что я один.', condition: 'firstHerald' },
+    { id: 'note_herald_2', text: 'Вестник снова пришёл. Рядом были выжившие, и он сказал, что моя сила в них. Теперь я верю.', condition: 'heraldSurvived' },
+    { id: 'note_anna_save', text: 'Анна рассказала про подземные туннели. Если укрепить своды, можно добывать уголь быстрее.', condition: 'annaSaved' },
+    { id: 'note_vera_save', text: 'Вера объяснила: Тьма — паразит, питающийся страхом. Перестать бояться — ослабить её.', condition: 'veraSaved' },
+    { id: 'note_darya_save', text: 'Дарья показала тайные тропы через лес. Там можно найти редкие камни.', condition: 'daryaSaved' },
+    { id: 'note_amulet', text: 'Купил амулет. Он греет душу, но это лишь первый шаг.', condition: 'boughtAmulet' },
+    { id: 'note_wall', text: 'Барьер теней установлен. Теперь ни одна тварь не войдёт. Но страх остаётся.', condition: 'boughtWall' },
+    { id: 'note_heat_crystal', text: 'Тепловой кристалл даёт почти вечное тепло. Цена высока, но жизнь дороже.', condition: 'boughtHeatCrystal' }
+];
+
+// ============================================================
+//  ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ============================================================
+function updateMaxWarmth() {
+    let base = 120;
+    if (G.upgrades.blanket) base += 20;
+    if (G.upgrades.heat_crystal) base += 60;
+    G.maxWarmth = base;
+    if (G.warmth > G.maxWarmth) G.warmth = G.maxWarmth;
+}
+
+function applyEventModifiers(coalChange, warmthChange, fearChange) {
+    if (G.upgrades.amulet) {
+        if (warmthChange < 0) warmthChange = Math.floor(warmthChange / 2);
+        if (fearChange > 0) fearChange = Math.floor(fearChange / 2);
+    }
+    if (G.upgrades.wall) {
+        if (warmthChange < 0) warmthChange = 0;
+        if (fearChange > 0) fearChange = 0;
+    }
+    return { coalChange, warmthChange, fearChange };
+}
+
+function addLoreNote(noteId) {
+    if (!Array.isArray(G.flags.notesAdded)) G.flags.notesAdded = [];
+    if (G.flags.notesAdded.includes(noteId)) return;
+    const noteDef = LORE_NOTES.find(n => n.id === noteId);
+    if (!noteDef) return;
+    G.notes.push(noteDef.text);
+    G.flags.notesAdded.push(noteId);
+    saveGame();
+}
+
+function checkAndAddAutoNotes() {
+    if (G.rescued.some(p => p.type === 'anna') && !G.flags.annaSaved) {
+        G.flags.annaSaved = true;
+        addLoreNote('note_anna_save');
+    }
+    if (G.rescued.some(p => p.type === 'vera') && !G.flags.veraSaved) {
+        G.flags.veraSaved = true;
+        addLoreNote('note_vera_save');
+    }
+    if (G.rescued.some(p => p.type === 'darya') && !G.flags.daryaSaved) {
+        G.flags.daryaSaved = true;
+        addLoreNote('note_darya_save');
+    }
+    if (G.upgrades.amulet && !G.flags.boughtAmulet) {
+        G.flags.boughtAmulet = true;
+        addLoreNote('note_amulet');
+    }
+    if (G.upgrades.wall && !G.flags.boughtWall) {
+        G.flags.boughtWall = true;
+        addLoreNote('note_wall');
+    }
+    if (G.upgrades.candle && !G.flags.boughtCandle) G.flags.boughtCandle = true;
+    if (G.upgrades.blanket && !G.flags.boughtBlanket) G.flags.boughtBlanket = true;
+    if (G.upgrades.heat_crystal && !G.flags.boughtHeatCrystal) {
+        G.flags.boughtHeatCrystal = true;
+        addLoreNote('note_heat_crystal');
+    }
+    if (G.upgrades.pickaxe && !G.flags.boughtPickaxe) G.flags.boughtPickaxe = true;
+    if (G.upgrades.mine && !G.flags.boughtMine) G.flags.boughtMine = true;
+    if (G.upgrades.upgraded_windows && !G.flags.boughtWindows) G.flags.boughtWindows = true;
+    if (G.upgrades.upgraded_charms && !G.flags.boughtCharms) G.flags.boughtCharms = true;
+    if (G.upgrades.upgraded_door && !G.flags.boughtDoor) G.flags.boughtDoor = true;
+}
+
+function showMerchantReaction() {
+    const dialog = document.getElementById('merchant-dialog');
+    const randomIndex = Math.floor(Math.random() * MERCHANT_FUNNY_PHRASES.length);
+    dialog.innerText = MERCHANT_FUNNY_PHRASES[randomIndex];
+}
+
+function updateMeatRecord() {
+    if (G.meat > G.maxMeatRecord) {
+        G.maxMeatRecord = G.meat;
+        saveGame();
+        submitScore(G.maxMeatRecord);
+    }
+}
+
+// ============================================================
+//  ФУНКЦИИ ДЛЯ РЕКЛАМНОГО КАМНЯ В ЛАВКЕ
+// ============================================================
+function getStoneViaAd() {
+    const now = Date.now();
+    if (now - G.flags.lastAdStoneTime < 600000) { // 10 минут
+        const remaining = Math.ceil((600000 - (now - G.flags.lastAdStoneTime))/60000);
+        alert(`Подождите ещё ${remaining} мин.`);
+        return;
+    }
+    showRewardedAd(
+        () => {
+            G.rareStones++;
+            G.flags.lastAdStoneTime = Date.now();
+            updateShopUI();
+            saveGame();
+            updateAdStoneStatus();
+            alert('Вы получили редкий камень!');
+        },
+        (err) => {
+            console.error('Ошибка показа рекламы:', err);
+            alert('Не удалось показать рекламу. Попробуйте позже.');
+        }
+    );
+}
+
+function updateAdStoneStatus() {
+    const statusEl = document.getElementById('ad-stone-status');
+    if (!statusEl) return;
+    const now = Date.now();
+    const diff = now - G.flags.lastAdStoneTime;
+    if (diff < 600000) {
+        const mins = Math.ceil((600000 - diff)/60000);
+        statusEl.innerText = `Будет доступен через ${mins} мин.`;
+        document.getElementById('ad-stone-btn').disabled = true;
+    } else {
+        statusEl.innerText = 'Доступно';
+        document.getElementById('ad-stone-btn').disabled = false;
+    }
+}
+
+// ============================================================
+//  МУЗЫКАЛЬНЫЙ МЕНЕДЖЕР
+// ============================================================
+function updateMusic(screenId, isNightActive = false) {
+    const shouldPlayNight = (screenId === 'game-screen' && isNightActive && !G.isGameOver);
+    menuMusic.pause();
+    nightMusic.pause();
+    if (shouldPlayNight) {
+        nightMusic.currentTime = 0;
+        nightMusic.play().catch(() => {});
+    } else {
+        menuMusic.currentTime = 0;
+        menuMusic.play().catch(() => {});
+    }
+}
+
+function pauseAllMusic() {
+    menuMusic.pause();
+    nightMusic.pause();
+}
+
+function resumeMusic() {
+    const screenId = document.querySelector('.screen.active-screen')?.id;
+    if (screenId === 'game-screen' && !G.isDayPhase && !G.nightPreviewActive && !G.isGameOver && G.gameInterval) {
+        nightMusic.play().catch(() => {});
+    } else {
+        menuMusic.play().catch(() => {});
+    }
+}
+
+function toggleMute() {
+    soundMuted = !soundMuted;
+    const allAudio = [menuMusic, nightMusic, fireCrackle, bossAppearSound, bossAttackSound];
+    allAudio.forEach(a => a.muted = soundMuted);
+    document.getElementById('mute-btn').innerText = soundMuted ? '🔇 Звук выключен' : '🔊 Звук включён';
+}
+
+// ============================================================
+//  АНИМАЦИЯ, ВИНЬЕТКА, ЧАСТИЦЫ
+// ============================================================
+function animationLoop() {
+    if (document.getElementById('game-screen').classList.contains('active-screen')) {
+        drawFireParticles();
+    } else {
+        ctx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+    }
+    G.animationFrame = requestAnimationFrame(animationLoop);
+}
+
+function updateVignette() {
+    const vig = document.getElementById('vignette');
+    let warmthFactor = 1 - (G.warmth / (G.maxWarmth * 1.2));
+    let fearFactor = G.fear / MAX_FEAR * 0.4;
+    let dark = Math.max(0, Math.min(0.95, warmthFactor + fearFactor));
+    vig.style.background = `radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,${dark}) 100%)`;
+}
+
+const fireCanvas = document.getElementById('fire-canvas');
+const ctx = fireCanvas.getContext('2d');
+let particles = [];
+let fireX = 0, fireY = 0;
+
+function resizeCanvas() { fireCanvas.width = window.innerWidth; fireCanvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function updateFirePosition() {
+    const btn = document.getElementById('fire-btn');
+    const rect = btn.getBoundingClientRect();
+    fireX = rect.left + rect.width/2;
+    fireY = rect.top + rect.height/2;
+}
+window.addEventListener('resize', () => { resizeCanvas(); updateFirePosition(); });
+
+class FireParticle {
+    constructor() {
+        this.x = fireX + (Math.random()-0.5)*20;
+        this.y = fireY + (Math.random()-0.5)*15;
+        this.size = Math.random()*5+2;
+        this.speedX = (Math.random()-0.5)*0.8;
+        this.speedY = -Math.random()*2-0.5;
+        this.life = 1;
+        this.decay = 0.003+Math.random()*0.005;
+        this.color = `hsl(${30+Math.random()*20}, 100%, ${60+Math.random()*30}%)`;
+        this.twinkle = Math.random()*100;
+    }
+    update() {
+        this.x += this.speedX; this.y += this.speedY;
+        this.life -= this.decay; this.twinkle += 0.1;
+        if (this.life < 0) this.life = 0;
+    }
+    draw() {
+        const alpha = this.life * (0.6 + 0.4*Math.sin(this.twinkle));
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size*this.life, 0, Math.PI*2);
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = '#ff8800';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+}
+
+function spawnFireParticle() {
+    const isGameActive = document.getElementById('game-screen').classList.contains('active-screen');
+    if (!isGameActive) return;
+    if (G.warmth / G.maxWarmth < 0.3) return;
+    if (G.isGameOver || G.isDayPhase || G.nightPreviewActive) return;
+    updateFirePosition();
+    const count = Math.floor(2 + G.warmth/20);
+    for (let i=0; i<count; i++) {
+        particles.push(new FireParticle());
+    }
+}
+
+function drawFireParticles() {
+    updateFirePosition();
+    const now = performance.now();
+    if (now - G.lastParticleSpawn > 200) {
+        spawnFireParticle();
+        G.lastParticleSpawn = now;
+    }
+    ctx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+    for (let i = particles.length-1; i>=0; i--) {
+        const p = particles[i];
+        p.update();
+        if (p.life <= 0) { particles.splice(i,1); continue; }
+        p.draw();
+    }
+    if (particles.length > 300) particles.splice(0, particles.length-300);
+}
+
+function startFireParticles() {
+    updateFirePosition();
+    G.lastParticleSpawn = 0;
+}
+
+// ============================================================
+//  ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ (UI, СОБЫТИЯ, БОССЫ И Т.Д.)
+// ============================================================
+
+function switchScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => {
+        s.classList.remove('active-screen');
+        s.style.display = 'none';
+    });
+    const next = document.getElementById(screenId);
+    if (next) {
+        next.style.display = 'flex';
+        next.classList.add('active-screen');
+        if (screenId === 'game-screen') {
+            document.getElementById('vignette').style.display = 'block';
+            document.getElementById('story-content').style.display = 'block';
+            document.getElementById('radio-report').style.display = 'none';
+            updateGameUI();
+            updateAbilityButtons();
+            updateFirePosition();
+            updateAbilityBarVisibility();
+            const isNight = !G.isDayPhase && !G.nightPreviewActive && !G.isGameOver && G.gameInterval;
+            updateMusic(screenId, isNight);
+        } else {
+            document.getElementById('vignette').style.display = 'block';
+            if (screenId === 'shop-screen') {
+                document.getElementById('shop-coal-wallet').innerText = G.coal.toFixed(2);
+                updateMerchantDialog();
+                updateShopUI();
+                updateAdStoneStatus();
+            }
+            if (screenId === 'inv-screen') updateInventoryUI();
+            if (screenId === 'achievements-screen') { renderAchievements(); renderEndings(); }
+            if (screenId === 'notes-screen') renderNotes();
+            if (screenId === 'night-select-screen') renderNightSelect();
+            updateAbilityBarVisibility();
+            updateMusic(screenId, false);
+        }
+    }
+    if (screenId !== 'shop-screen') {
+        const dialog = document.getElementById('merchant-dialog');
+        if (dialog) {
+            updateMerchantDialog();
+        }
+    }
+    updateContinueButton();
+}
+
+function updateAbilityBarVisibility() {
+    const bar = document.getElementById('ability-bar');
+    const isGame = document.getElementById('game-screen').classList.contains('active-screen');
+    if (!isGame || G.isGameOver || G.isDayPhase || G.nightPreviewActive || G.eventActive || G.nightPaused || G.bossActive || G.boss3Active) {
+        bar.classList.add('hidden');
+    } else {
+        bar.classList.remove('hidden');
+    }
+}
+
+function updateContinueButton() {
+    const btn = document.getElementById('continue-btn');
+    const show = G.isDayPhase || G.nightPreviewActive || G.nightPaused || (G.gameInterval !== null && !G.isGameOver);
+    if (show && !G.isGameOver) {
+        btn.style.display = 'block';
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+function continueGame() {
+    if (G.isGameOver) return;
+    if (G.isDayPhase) {
+        switchScreen('game-screen');
+        startDayPhase();
+    } else if (G.nightPreviewActive) {
+        switchScreen('game-screen');
+        showNightPreview();
+    } else if (G.nightPaused) {
+        switchScreen('game-screen');
+        continueNight();
+    } else if (G.gameInterval !== null) {
+        switchScreen('game-screen');
+        updateGameUI();
+    }
+}
+
+function showModal(title, text, callback) {
+    const overlay = document.getElementById('modal-overlay');
+    overlay.classList.remove('active');
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-text').innerHTML = text.replace(/\n/g, '<br>');
+    overlay.classList.add('active');
+    document.getElementById('modal-btn').onclick = function() {
+        overlay.classList.remove('active');
+        if (callback) callback();
+    };
+}
+
+// ============================================================
+//  ИНВЕНТАРЬ И МАГАЗИН
+// ============================================================
+function updateInventoryUI() {
+    const list = document.getElementById('inventory-list');
+    let html = '';
+    const items = {
+        logs:'🪵 Еловые поленья', pickaxe:'🪓 Острая кирка', wall:'🛡️ Барьер теней',
+        blanket:'✨ Амулет света', mine:'⛏️ Угольная жила', amulet:'📿 Священный амулет',
+        candle:'🕯️ Свеча', upgraded_windows:'🪟 Укреплённые окна',
+        upgraded_charms:'☯️ Обереги', upgraded_door:'🚪 Укреплённая дверь',
+        heat_crystal:'🔥 Тепловой кристалл', quest_amulet:'📜 Амулет торговца',
+        meat_amulet:'🍖🔥 Шашлычный амулет'
+    };
+    let has = false;
+    for (let key in G.upgrades) {
+        if (G.upgrades[key] && items[key]) {
+            let sellBtn = '';
+            if (key !== 'quest_amulet' && key !== 'meat_amulet' && SELL_PRICES[key] !== undefined) {
+                sellBtn = `<button class="sell-btn" onclick="sellItem('${key}')">Продать за ${SELL_PRICES[key]}</button>`;
+            }
+            html += `<div class="inv-item"><span>${items[key]}</span> ${sellBtn}</div>`;
+            has = true;
+        }
+    }
+    if (G.rescued.length) {
+        html += '<br><b>Спасённые:</b><br>';
+        G.rescued.forEach(p => {
+            const name = p.name || 'Безымянный';
+            const story = p.story || 'выживший';
+            html += `• ${SURVIVOR_TYPES[p.type]?.emoji||'👤'} ${name} – ${story}<br>`;
+        });
+        has = true;
+    }
+    if (G.rareStones > 0) html += `<br>💎 Редкие камни: ${G.rareStones}<br>`;
+    if (G.flags.secretNightUnlocked) html += `<br>🔴 Секретная ночь разблокирована!<br>`;
+    if (!has) html = '• Пусто. Вы ещё ничего не купили и никого не спасли.';
+    list.innerHTML = html;
+}
+
+function sellItem(itemKey) {
+    if (!G.upgrades[itemKey]) return;
+    const price = SELL_PRICES[itemKey];
+    if (price === undefined) return;
+    if (!confirm(`Продать ${itemKey} за ${price} угля? Бонусы от предмета будут сняты.`)) return;
+    G.upgrades[itemKey] = false;
+    if (itemKey === 'upgraded_windows') G.shelterBonus.warmthLossReduce = 0;
+    if (itemKey === 'upgraded_charms') G.shelterBonus.fearReduce = 0;
+    if (itemKey === 'upgraded_door') G.shelterBonus.eventProtect = 0;
+    updateMaxWarmth();
+    G.coal += price;
+    saveGame();
+    updateInventoryUI();
+    updateGameUI();
+    updateAbilityButtons();
+    alert(`Продано! Вы получили ${price} угля.`);
+}
+
+function buyItem(itemKey, cost) {
+    const allowed = ['logs','pickaxe','wall','blanket','mine','amulet','candle','upgraded_windows','upgraded_charms','upgraded_door','heat_crystal','quest_amulet'];
+    if (!allowed.includes(itemKey)) { alert('Этот предмет больше не продаётся.'); return; }
+    if (G.upgrades[itemKey]) { alert('Уже куплено!'); return; }
+    if (G.coal >= cost) {
+        G.coal -= cost;
+        G.upgrades[itemKey] = true;
+        if (itemKey === 'upgraded_windows') G.shelterBonus.warmthLossReduce = 0.1;
+        if (itemKey === 'upgraded_charms') G.shelterBonus.fearReduce = 1.0;
+        if (itemKey === 'upgraded_door') G.shelterBonus.eventProtect = 1;
+        if (itemKey === 'quest_amulet') {
+            G.flags.secretNightUnlocked = true;
+            alert('Вы получили амулет торговца! Теперь после 7-й ночи вы сможете войти в Секретную Ночь (Кровавая луна).');
+        }
+        updateMaxWarmth();
+        updateShopUI();
+        alert('Успешно куплено!');
+        showMerchantReaction();
+        saveGame();
+        updateGameUI();
+        updateAbilityButtons();
+        checkAchievements();
+        checkAndAddAutoNotes();
+    } else {
+        alert('Недостаточно угля!');
+    }
+}
+
+function updateShopUI() {
+    document.getElementById('shop-coal-wallet').innerText = G.coal.toFixed(2);
+    updateMerchantDialog();
+    document.querySelectorAll('.buy-btn[data-item]').forEach(btn => {
+        const item = btn.dataset.item;
+        if (G.upgrades[item]) {
+            btn.classList.add('bought');
+            btn.innerText = 'Куплено';
+            btn.disabled = true;
+        } else {
+            btn.classList.remove('bought');
+            btn.innerText = 'Купить';
+            btn.disabled = false;
+        }
+    });
+    const meatAmuletBtn = document.querySelector('.shop-item .buy-btn[data-item="meat_amulet"]');
+    if (meatAmuletBtn) {
+        if (G.upgrades.meat_amulet) {
+            meatAmuletBtn.classList.add('bought');
+            meatAmuletBtn.innerText = 'Куплено';
+            meatAmuletBtn.disabled = true;
+        } else {
+            meatAmuletBtn.classList.remove('bought');
+            meatAmuletBtn.innerText = 'Купить';
+            meatAmuletBtn.disabled = false;
+        }
+    }
+}
+
+function updateMerchantDialog() {
+    const dialog = document.getElementById('merchant-dialog');
+    if (!G.flags.metMerchant) {
+        dialog.innerText = '— А, новый клиент! У меня есть кое-что полезное. Торгую за уголь. И за шашлык тоже — даю хороший курс.';
+        G.flags.metMerchant = true;
+    } else if (G.rareStones >= 3 && !G.flags.merchantQuestActive) {
+        dialog.innerText = '— Вы принесли 3 редких камня! Возьмите этот амулет, он откроет вам путь к Секретной Ночи.';
+    } else if (G.flags.merchantQuestActive) {
+        dialog.innerText = '— Вы уже получили амулет. Удачи в Секретной Ночи! Не забывайте про шашлык — он может пригодиться.';
+    } else {
+        dialog.innerText = '— Что желаете, путник? Если найдёте 3 редких камня, я открою вам путь к Кровавой луне. А шашлык всегда в цене.';
+    }
+    const questDesc = document.getElementById('quest-desc');
+    if (G.rareStones >= 3 && !G.flags.merchantQuestActive) {
+        questDesc.innerText = '✅ Камни собраны! Нажмите "Сдать камни" для награды.';
+    } else if (G.flags.merchantQuestActive) {
+        questDesc.innerText = '✅ Амулет получен! Секретная ночь разблокирована.';
+    } else {
+        questDesc.innerText = `Принесите 3 редких камня (у вас ${G.rareStones}), чтобы открыть Секретную Ночь.`;
+    }
+}
+
+function checkQuest() {
+    if (G.rareStones >= 3 && !G.flags.merchantQuestActive) {
+        G.rareStones -= 3;
+        G.flags.merchantQuestActive = true;
+        G.upgrades.quest_amulet = true;
+        G.flags.secretNightUnlocked = true;
+        alert('Вы обменяли камни на амулет! Теперь после 7-й ночи вы сможете войти в Секретную Ночь (Кровавая луна).');
+        updateShopUI();
+        saveGame();
+        updateGameUI();
+        checkAchievements();
+    } else {
+        alert('У вас недостаточно камней или вы уже получили награду.');
+    }
+}
+
+function exchangeMeat() {
+    if (G.coal >= 50) {
+        G.coal -= 50;
+        G.meat++;
+        updateMeatRecord();
+        updateShopUI();
+        updateGameUI();
+        saveGame();
+        alert('Вы получили кусок шашлыка!');
+        showMerchantReaction();
+    } else {
+        alert('Недостаточно угля. Нужно 50.');
+    }
+}
+
+function exchangeMeatToCoal() {
+    if (G.meat >= 10) {
+        G.meat -= 10;
+        G.coal += 470;
+        updateShopUI();
+        updateGameUI();
+        saveGame();
+        alert('Вы обменяли 10 шашлыка на 470 угля!');
+        showMerchantReaction();
+    } else {
+        alert('Недостаточно шашлыка. Нужно 10.');
+    }
+}
+
+function buyMeatAmulet() {
+    if (G.upgrades.meat_amulet) {
+        alert('Уже куплено!');
+        return;
+    }
+    if (G.meat >= 20) {
+        G.meat -= 20;
+        G.upgrades.meat_amulet = true;
+        updateShopUI();
+        updateGameUI();
+        saveGame();
+        alert('Шашлычный амулет активирован! Весь эффект клика удвоен.');
+        showMerchantReaction();
+    } else {
+        alert('Недостаточно шашлыка. Нужно 20.');
+    }
+}
+
+// ============================================================
+//  ДИАЛОГИ С ВЫЖИВШИМИ
+// ============================================================
+function startDialog(character) {
+    if (G.isGameOver || G.eventActive) return;
+    if (!G.rescued.some(p => p.type === character)) {
+        showModal('Нет доступа', 'Этот выживший не с вами.');
+        return;
+    }
+    document.getElementById('modal-overlay').classList.remove('active');
+    let steps = [];
+    if (character === 'anna') {
+        if (G.flags.talkedToAnna) {
+            showModal('Анна', '— Ты уже всё знаешь. Иди, поддерживай огонь.');
+            return;
+        }
+        steps = [
+            { speaker: 'Анна', text: '— Рада, что ты пришёл. Я инженер, и я видела туннели под городом. Там можно найти много угля.' },
+            { speaker: 'Вы', text: '— Как я могу туда попасть?' },
+            { speaker: 'Анна', text: '— Есть старый люк на восточной окраине. Если укрепишь его, сможешь спускаться и добывать уголь быстрее. Я покажу тебе чертёж.' },
+            { speaker: 'Вы', text: '— Спасибо, Анна. Это очень поможет.' },
+            { speaker: 'Анна', text: '— Держись. Тьма боится тех, кто не сдаётся.' }
+        ];
+        G.flags.talkedToAnna = true;
+    } else if (character === 'vera') {
+        if (G.flags.talkedToVera) {
+            showModal('Вера', '— Ты уже знаешь, что страх — это паразит. Береги себя.');
+            return;
+        }
+        steps = [
+            { speaker: 'Вера', text: '— Я врач. Я видела, как тьма поражает людей. Это не просто страх — это болезнь.' },
+            { speaker: 'Вы', text: '— Как она передаётся?' },
+            { speaker: 'Вера', text: '— Через контакт с заражёнными. Но есть и хорошая новость: если держать страх под контролем, можно ослабить её.' },
+            { speaker: 'Вы', text: '— Как мне это сделать?' },
+            { speaker: 'Вера', text: '— Медитация, молитва, общение с близкими. И помни: ты не один.' },
+            { speaker: 'Вы', text: '— Спасибо, Вера.' },
+            { speaker: 'Вера', text: '— Береги себя. Я буду лечить раненых.' }
+        ];
+        G.flags.talkedToVera = true;
+    } else if (character === 'darya') {
+        if (G.flags.talkedToDarya) {
+            showModal('Дарья', '— Тропы ждут тебя. Иди, ищи камни.');
+            return;
+        }
+        steps = [
+            { speaker: 'Дарья', text: '— Я лесник. Я знаю каждую тропу в лесу. Там, где тьма не такая густая, можно найти редкие камни.' },
+            { speaker: 'Вы', text: '— Это те самые камни, которые нужны торговцу?' },
+            { speaker: 'Дарья', text: '— Да. Они обладают особыми свойствами. Если соберёшь три, сможешь открыть тайный путь.' },
+            { speaker: 'Вы', text: '— Как мне их найти?' },
+            { speaker: 'Дарья', text: '— В лесу есть старый дуб с отметиной. Рой под ним — там часто попадаются камни.' },
+            { speaker: 'Вы', text: '— Спасибо, Дарья.' },
+            { speaker: 'Дарья', text: '— Удачи. И помни: лес всё видит.' }
+        ];
+        G.flags.talkedToDarya = true;
+    }
+    let index = 0;
+    function showStep() {
+        if (index >= steps.length) {
+            showModal('💬 Диалог завершён', 'Вы поговорили с ' + SURVIVOR_TYPES[character].name + '.');
+            saveGame();
+            return;
+        }
+        const step = steps[index];
+        let html = '<b>' + step.speaker + ':</b> ' + step.text;
+        document.getElementById('modal-overlay').classList.remove('active');
+        showModal('💬 Разговор', html, () => {
+            index++;
+            showStep();
+        });
+    }
+    showStep();
+}
+
+// ============================================================
+//  ОБНОВЛЕНИЕ ИГРОВОГО UI
+// ============================================================
+function updateGameUI() {
+    const warmthPct = Math.min(100, (G.warmth / G.maxWarmth)*100);
+    document.getElementById('bar').style.width = warmthPct + '%';
+    document.getElementById('hud-warmth').innerText = Math.floor(G.warmth);
+    document.getElementById('hud-max-warmth').innerText = G.maxWarmth;
+    const fearPct = Math.min(100, (G.fear / MAX_FEAR)*100);
+    document.getElementById('fear-bar').style.width = fearPct + '%';
+    document.getElementById('hud-fear').innerText = Math.floor(G.fear);
+    document.getElementById('hud-coal').innerText = G.coal.toFixed(2);
+    document.getElementById('hud-meat').innerText = G.meat;
+    let dayLabel = G.isSecretNight ? 'Секретная' : (G.isInfinite ? '∞' : G.day);
+    document.getElementById('hud-day').innerText = dayLabel;
+    let maxTime = G.isSecretNight ? SECRET_NIGHT_DURATION : (G.isInfinite ? '∞' : NIGHT_DURATION);
+    if (G.day === 7 && !G.isSecretNight && !G.isInfinite) maxTime = 120;
+    document.getElementById('time-counter').innerText = G.timeSurvived;
+    document.getElementById('max-time').innerText = maxTime;
+    const fire = document.getElementById('fire-btn');
+    if (G.warmth > G.maxWarmth * 0.5) fire.style.filter = 'drop-shadow(0 0 50px #ff5500)';
+    else if (G.warmth > G.maxWarmth * 0.25) fire.style.filter = 'drop-shadow(0 0 30px #ff8800)';
+    else fire.style.filter = 'drop-shadow(0 0 15px #ffaa44)';
+    const container = document.getElementById('story-container');
+    if (G.fear > 70) container.classList.add('fear-pulse');
+    else container.classList.remove('fear-pulse');
+    if (G.warmth > G.maxWarmth * 0.6) document.body.style.backgroundColor = '#1a120a';
+    else if (G.warmth > G.maxWarmth * 0.3) document.body.style.backgroundColor = '#0d0a08';
+    else document.body.style.backgroundColor = '#050505';
+    updateVignette();
+    updateAbilityBarVisibility();
+    updateContinueButton();
+}
+
+function updateAbilityButtons() {
+    const paused = G.nightPaused;
+    document.getElementById('cd-coal').innerText = G.coalCooldown > 0 ? G.coalCooldown+'с' : 'готов';
+    document.getElementById('cd-pray').innerText = G.prayCooldown > 0 ? G.prayCooldown+'с' : 'готов';
+    document.getElementById('ability-coal').disabled = (G.coalCooldown > 0) || paused;
+    document.getElementById('ability-pray').disabled = (G.prayCooldown > 0) || paused;
+}
+
+// ============================================================
+//  СПОСОБНОСТИ
+// ============================================================
+function useAbility(type) {
+    if (G.isGameOver || G.eventActive || G.isDayPhase || G.nightPreviewActive || G.nightPaused) return;
+    if (type === 'coal' && G.coalCooldown === 0) {
+        if (G.coal < 2) { alert('Недостаточно угля! Нужно 2.'); return; }
+        G.coalCooldown = 15;
+        G.coal -= 2;
+        G.coalEarnedThisRound = Math.max(0, G.coalEarnedThisRound - 2);
+        G.warmth = Math.min(G.maxWarmth, G.warmth + 25);
+        document.getElementById('story-text').innerText = '🪵 Вы подбросили угля! Тепло +25.';
+        setTimeout(() => { if (!G.eventActive && !G.isGameOver) document.getElementById('story-text').innerText = getDefaultStoryText(); }, 2000);
+        updateAbilityButtons();
+        updateGameUI();
+        saveGame();
+        checkAchievements();
+    } else if (type === 'pray' && G.prayCooldown === 0) {
+        G.prayCooldown = 30;
+        G.fear = Math.max(0, G.fear - 15);
+        G.warmth = Math.min(G.maxWarmth, G.warmth + 10);
+        document.getElementById('story-text').innerText = '🙏 Молитва успокоила душу. Страх -15, тепло +10.';
+        setTimeout(() => { if (!G.eventActive && !G.isGameOver) document.getElementById('story-text').innerText = getDefaultStoryText(); }, 2000);
+        updateAbilityButtons();
+        updateGameUI();
+        saveGame();
+        checkAchievements();
+    }
+}
+
+function tickCooldowns() {
+    if (G.coalCooldown > 0) G.coalCooldown--;
+    if (G.prayCooldown > 0) G.prayCooldown--;
+    updateAbilityButtons();
+}
+
+// ============================================================
+//  КЛИК ПО КОСТРУ
+// ============================================================
+function handleFireClick(e) {
+    if (G.isGameOver || G.eventActive || G.isDayPhase || G.nightPreviewActive || G.nightPaused) return;
+    const btn = document.getElementById('fire-btn');
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    createSparks(cx, cy);
+    fireCrackle.currentTime = 0;
+    fireCrackle.play().catch(() => {});
+    G.clickCounter++;
+    if (G.clickCounter >= 500 && G.rareStones < 3 && !G.flags.secretNightUnlocked) {
+        G.clickCounter = 0;
+        G.rareStones++;
+        showModal('💎 Гарантированный камень!', 'Вы нашли редкий камень (каждые 500 кликов). Всего: ' + G.rareStones + '/3');
+    }
+    let efficiency = G.panicActive ? 0.4 : 1.0;
+    let warmthGain = Math.max(1, Math.floor(4 * efficiency));
+    let coalGain = 0.2;
+    if (G.upgrades.pickaxe) coalGain += 0.1;
+    if (G.rescued.some(p => p.type === 'anna')) coalGain += 0.1;
+    coalGain = Math.max(0.05, coalGain * efficiency);
+    let fearReduce = 1.0;
+    if (G.rescued.some(p => p.type === 'vera')) fearReduce += 0.5;
+    if (G.upgrades.meat_amulet) {
+        warmthGain *= 2;
+        coalGain *= 2;
+        fearReduce *= 2;
+    }
+    G.warmth = Math.min(G.warmth + warmthGain, G.maxWarmth);
+    G.coal += coalGain;
+    G.coalEarnedThisRound += coalGain;
+    G.fear = Math.max(0, G.fear - fearReduce);
+    if (Math.random() < 0.005 && G.rareStones < 3 && !G.flags.secretNightUnlocked) {
+        G.rareStones++;
+        showModal('💎 Находка!', 'Вы нашли редкий камень! (всего ' + G.rareStones + '/3)');
+    }
+    if (Math.random() < 0.05) {
+        const nice = ["Огонь ласково трещит.", "Искры танцуют в воздухе.", "Тепло разливается по телу.", "Пламя уютно мерцает."];
+        document.getElementById('story-text').innerText = nice[Math.floor(Math.random() * nice.length)];
+        setTimeout(() => {
+            if (!G.eventActive && !G.isGameOver) {
+                document.getElementById('story-text').innerText = getDefaultStoryText();
+            }
+        }, 3000);
+    }
+    updateGameUI();
+    checkAchievements();
+    saveGame();
+}
+
+function getDefaultStoryText() {
+    return "Тьма сгущается за окном. Поддерживайте огонь, чтобы не дать ей пробраться внутрь.";
+}
+
+// ============================================================
+//  ИСКРЫ
+// ============================================================
+function createSparks(x, y) {
+    const count = 6 + Math.floor(Math.random() * 4);
+    for (let i=0; i<count; i++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark';
+        spark.textContent = '✦';
+        spark.style.fontSize = (16 + Math.random()*18) + 'px';
+        const colors = ['#ffaa44','#ff8800','#ffcc66','#ff9933'];
+        spark.style.color = colors[Math.floor(Math.random() * colors.length)];
+        spark.style.left = (x + (Math.random()-0.5)*35) + 'px';
+        spark.style.top = (y + (Math.random()-0.5)*25) + 'px';
+        document.body.appendChild(spark);
+        setTimeout(() => spark.remove(), 900);
+    }
+}
+
+// ============================================================
+//  БОСС-ФАЙТ КОРОЛЯ МРАКА
+// ============================================================
+function attackBoss() {
+    if (!G.bossActive || G.isGameOver || G.eventActive || G.nightPaused) return;
+    G.bossHits++;
+    document.getElementById('boss-hp').innerText = G.bossMaxHits - G.bossHits;
+    document.getElementById('boss-bar').style.width = Math.max(0, (G.bossMaxHits - G.bossHits) / G.bossMaxHits * 100) + '%';
+    if (G.bossHits >= G.bossMaxHits) {
+        G.bossActive = false;
+        document.getElementById('boss-container').style.display = 'none';
+        if (G.rescued.length >= 5 && (G.upgrades.amulet || G.upgrades.wall || G.upgrades.candle || G.upgrades.quest_amulet)) {
+            showEnding('true_victory');
+        } else {
+            showEnding('victory');
+        }
+        clearInterval(G.gameInterval);
+        G.gameInterval = null;
+    }
+}
+
+// ============================================================
+//  БОСС-ФАЙТ ТЕНЕВОГО АССАСИНА
+// ============================================================
+function startBoss3() {
+    if (G.boss3Active || G.boss3Defeated) return;
+    G.boss3Active = true;
+    G.boss3Hits = 0;
+    G.boss3AttackTimer = 0;
+    document.getElementById('boss3-container').style.display = 'block';
+    document.getElementById('boss3-hp').innerText = G.boss3MaxHits;
+    document.getElementById('boss3-bar').style.width = '100%';
+    document.getElementById('story-text').innerHTML = '⚡ ТЕНЕВОЙ АССАСИН! Он быстр и беспощаден. Бейте!';
+    document.getElementById('fire-btn').classList.add('fire-disabled');
+    updateAbilityBarVisibility();
+    bossAppearSound.currentTime = 0;
+    bossAppearSound.play().catch(() => {});
+}
+
+function attackBoss3() {
+    if (!G.boss3Active || G.isGameOver) return;
+    G.boss3Hits++;
+    const remaining = G.boss3MaxHits - G.boss3Hits;
+    document.getElementById('boss3-hp').innerText = remaining;
+    document.getElementById('boss3-bar').style.width = Math.max(0, (remaining / G.boss3MaxHits) * 100) + '%';
+    if (remaining <= 0) {
+        G.boss3Active = false;
+        G.boss3Defeated = true;
+        document.getElementById('boss3-container').style.display = 'none';
+        document.getElementById('fire-btn').classList.remove('fire-disabled');
+        let coalBonus = 20;
+        let fearBonus = -5;
+        if (G.rareStones < 3 && !G.flags.secretNightUnlocked) {
+            G.rareStones++;
+            showModal('💎 Трофей', 'Ассасин уронил редкий камень! (всего ' + G.rareStones + '/3)');
+        }
+        resolveEvent('Теневой Ассасин повержен! +20 угля, -5 страха.', coalBonus, 0, fearBonus);
+        updateAbilityBarVisibility();
+    }
+}
+
+// ============================================================
+//  ОБОРОТНИ-ТЕНИ (Секретная ночь)
+// ============================================================
+function startWerewolfEvent() {
+    if (G.isGameOver || G.eventActive) return;
+    G.eventActive = true;
+    const choices = [
+        {
+            text: "Отдать 10 угля",
+            action: () => {
+                if (G.coal >= 10) {
+                    resolveEvent("Вы откупились от теней. Уголь -10.", -10, 0, 0);
+                } else {
+                    resolveEvent("Недостаточно угля! Тени атакуют: -30 тепла, +15 страха.", 0, -30, 15);
+                }
+            }
+        },
+        {
+            text: "Сражаться (потерять 30 тепла и +15 страха)",
+            action: () => {
+                resolveEvent("Тени терзают ваше убежище. -30 тепла, +15 страха.", 0, -30, 15);
+            }
+        },
+        {
+            text: "Отдать 3 шашлыка (не будут беспокоить всю ночь)",
+            action: () => {
+                if (G.meat >= 3) {
+                    G.meat -= 3;
+                    G.werewolfBribed = true;
+                    resolveEvent("Оборотни взяли шашлык и ушли. Ночь спокойна.", 0, 0, 0);
+                } else {
+                    resolveEvent("Недостаточно шашлыка! Придётся драться.", 0, -30, 15);
+                }
+            }
+        }
+    ];
+    document.getElementById('story-text').innerHTML = '🐺 ОБОРОТНИ-ТЕНИ приближаются! Выберите, что делать.';
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    choices.forEach(choice => {
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.style.fontSize = '17px';
+        b.style.padding = '12px';
+        b.innerText = choice.text;
+        b.onclick = choice.action;
+        container.appendChild(b);
+    });
+    document.getElementById('fire-btn').classList.add('fire-disabled');
+    updateAbilityBarVisibility();
+}
+
+// ============================================================
+//  ТЕНЕВОЙ ВЕСТНИК
+// ============================================================
+function startHeraldEvent() {
+    if (G.isGameOver || G.eventActive || G.isDayPhase || G.isSecretNight || G.isInfinite || G.nightPaused) return;
+    if (G.day > 7 || G.day < 1) return;
+    if (G.heraldDaysSurvived >= 3) return;
+    if (G.day === 4) return;
+    const hasSurvivors = G.rescued.length > 0;
+    let titleText = '👤 ТЕНЕВОЙ ВЕСТНИК';
+    let message = '';
+    let choices = [];
+    if (G.day <= 3) {
+        const speeches = [
+            "«Одиночество — это пламя, которое гаснет без света других душ.»",
+            "«В мире, где тьма пожирает свет, лишь вместе можно устоять.»",
+            "«Ты силён, но даже самый яркий огонь меркнет, если некому его поддержать.»"
+        ];
+        message = speeches[G.day - 1] || speeches[0];
+        choices.push({ text: "Вслушаться в слова", action: () => {
+            G.fear = Math.min(MAX_FEAR, G.fear + 5);
+            resolveEvent("Вы задумались над словами Вестника. Страх +5.", 0, 0, 5);
+            if (!G.flags.firstHeraldMet) {
+                G.flags.firstHeraldMet = true;
+                addLoreNote('note_herald_1');
+            }
+        }});
+        choices.push({ text: "Проигнорировать", action: () => {
+            G.fear = Math.min(MAX_FEAR, G.fear + 10);
+            resolveEvent("Вы отвернулись от Вестника. Страх +10.", 0, 0, 10);
+            if (!G.flags.firstHeraldMet) {
+                G.flags.firstHeraldMet = true;
+                addLoreNote('note_herald_1');
+            }
+        }});
+    } else if (G.day >= 5 && G.day <= 7) {
+        if (!hasSurvivors) {
+            G.isGameOver = true;
+            if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
+            if (!G.endings.includes('dark_friends')) {
+                G.endings.push('dark_friends');
+            }
+            document.getElementById('story-text').innerHTML = `Теневой вестник: «Ты один. Никто не разделит твою участь. Я забираю тебя во тьму, где у тебя будут тёмные друзья.»`;
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+            const b = document.createElement('button');
+            b.className = 'btn';
+            b.innerText = 'Узнать свою судьбу';
+            b.onclick = () => {
+                showEnding('dark_friends');
+            };
+            container.appendChild(b);
+            saveGame();
+            return;
+        } else {
+            message = `«Я вижу, ты не один. Твои спутники дают тебе силу. Но хватит ли её?»`;
+            choices.push({ text: "Попросить помощи у спутников", action: () => {
+                G.warmth = Math.min(G.maxWarmth, G.warmth + 20);
+                G.heraldDaysSurvived++;
+                resolveEvent("Спутники поддержали вас! Тепло +20, Вестник отступил.", 0, 20, -10);
+                addLoreNote('note_herald_2');
+            }});
+            choices.push({ text: "Довериться только себе", action: () => {
+                G.fear = Math.min(MAX_FEAR, G.fear + 15);
+                G.heraldDaysSurvived++;
+                resolveEvent("Вы отказались от помощи. Страх +15, но вы доказали свою силу.", 0, 0, 15);
+                addLoreNote('note_herald_2');
+            }});
+        }
+    }
+    G.eventActive = true;
+    document.getElementById('story-text').innerHTML = `<b>${titleText}</b><br>${message}`;
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    choices.forEach(choice => {
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.style.fontSize = '17px';
+        b.style.padding = '12px';
+        b.innerText = choice.text;
+        b.onclick = choice.action;
+        container.appendChild(b);
+    });
+    document.getElementById('fire-btn').classList.add('fire-disabled');
+    updateAbilityBarVisibility();
+}
+
+// ============================================================
+//  ЗАПУСК НОЧИ (С ИСПРАВЛЕНИЕМ ДЛЯ INSANITY)
+// ============================================================
+function startNight(isSecret = false, isInfinite = false, dayNum = null, resume = false) {
+    if (G.gameInterval) clearInterval(G.gameInterval);
+    if (!resume) {
+        G.isDayPhase = false;
+        G.nightPreviewActive = false;
+        G.isSecretNight = isSecret;
+        G.isInfinite = isInfinite;
+        if (dayNum !== null) G.day = dayNum;
+        G.eventActive = false;
+        G.panicActive = false;
+        G.panicTimer = 0;
+        G.panicImmunity = 0;
+        G.dayEventsTriggered = {};
+        G.timeSurvived = 0;
+        G.coalEarnedThisRound = 0;
+        G.isGameOver = false;
+        G.coalCooldown = 0;
+        G.prayCooldown = 0;
+        G.nightPaused = false;
+        G.nightElapsedReal = 0;
+        G.nightCounters = {
+            mineCounter: 0,
+            candleCounter: 0,
+            infiniteCounter: 0,
+            survivorAutoTapTimer: 0,
+            randomEventTimer: 0,
+            heatCrystalCounter: 0
+        };
+        G.bossActive = false;
+        G.bossHits = 0;
+        G.bossAttackTimer = 0;
+        G.boss3Active = false;
+        G.boss3Hits = 0;
+        G.boss3AttackTimer = 0;
+        G.boss3Defeated = false;
+        G.secretEventTimer = 0;
+        G.werewolfBribed = false;
+        G.saveCounter = 0;
+        document.getElementById('boss-container').style.display = 'none';
+        document.getElementById('boss3-container').style.display = 'none';
+        document.getElementById('fire-btn').classList.remove('fire-disabled');
+        if (isSecret) {
+            G.warmth = G.maxWarmth * 0.5;
+            G.fear = 60;
+            document.getElementById('story-text').innerHTML = '🔴 КРОВАВАЯ ЛУНА! Секретная ночь началась. Тьма бешеная. Продержитесь 300 секунд!';
+        } else if (isInfinite) {
+            G.warmth = G.maxWarmth * 0.8;
+            G.fear = Math.min(MAX_FEAR, G.fear + 10);
+            document.getElementById('story-text').innerHTML = '♾️ БЕСКОНЕЧНАЯ НОЧЬ! Тьма не знает предела. Держитесь сколько сможете!';
+        } else {
+            G.warmth = G.maxWarmth * 0.85;
+            G.warmth = Math.min(G.warmth, G.maxWarmth);
+            document.getElementById('story-text').innerHTML = `НОЧЬ ${G.day}. Тьма сгущается. Держите огонь!`;
+        }
+        document.getElementById('choices-container').innerHTML = '';
+        document.getElementById('fire-btn').style.display = 'block';
+        updateFirePosition();
+        document.getElementById('bar-container').style.display = 'block';
+        document.getElementById('story-content').style.display = 'block';
+        document.getElementById('radio-report').style.display = 'none';
+        document.getElementById('vignette').style.display = 'block';
+        updateMusic('game-screen', true);
+    } else {
+        G.nightStartTime = Date.now();
+        G.nightPaused = false;
+        G.nightCounters.randomEventTimer = G.nightCounters.randomEventTimer || 0;
+        document.getElementById('fire-btn').classList.remove('fire-disabled');
+        document.getElementById('fire-btn').style.display = 'block';
+        updateFirePosition();
+        document.getElementById('bar-container').style.display = 'block';
+        document.getElementById('story-content').style.display = 'block';
+        document.getElementById('radio-report').style.display = 'none';
+        document.getElementById('vignette').style.display = 'block';
+        if (G.isSecretNight) {
+            document.getElementById('story-text').innerHTML = '🔴 КРОВАВАЯ ЛУНА! (продолжение)';
+        } else if (G.isInfinite) {
+            document.getElementById('story-text').innerHTML = '♾️ БЕСКОНЕЧНАЯ НОЧЬ (продолжение)';
+        } else {
+            document.getElementById('story-text').innerHTML = `НОЧЬ ${G.day} (продолжение)`;
+        }
+        if (G.bossActive) {
+            document.getElementById('boss-container').style.display = 'block';
+            document.getElementById('boss-hp').innerText = G.bossMaxHits - G.bossHits;
+            document.getElementById('boss-bar').style.width = Math.max(0, (G.bossMaxHits - G.bossHits) / G.bossMaxHits * 100) + '%';
+        }
+        if (G.boss3Active) {
+            document.getElementById('boss3-container').style.display = 'block';
+            document.getElementById('boss3-hp').innerText = G.boss3MaxHits - G.boss3Hits;
+            document.getElementById('boss3-bar').style.width = Math.max(0, (G.boss3MaxHits - G.boss3Hits) / G.boss3MaxHits * 100) + '%';
+        }
+        nightMusic.play().catch(() => {});
+    }
+    updateGameUI();
+    updateAbilityButtons();
+    saveGame();
+    let mineCounter = G.nightCounters.mineCounter || 0;
+    let candleCounter = G.nightCounters.candleCounter || 0;
+    let infiniteCounter = G.nightCounters.infiniteCounter || 0;
+    let survivorAutoTapTimer = G.nightCounters.survivorAutoTapTimer || 0;
+    let randomEventTimer = G.nightCounters.randomEventTimer || 0;
+    let heatCrystalCounter = G.nightCounters.heatCrystalCounter || 0;
+    let durationMs;
+    if (isSecret) durationMs = SECRET_NIGHT_DURATION * 1000;
+    else if (G.day === 7 && !isSecret && !isInfinite) durationMs = 120 * 1000;
+    else durationMs = isInfinite ? Infinity : NIGHT_DURATION * 1000;
+    if (!resume) {
+        G.nightStartTime = Date.now();
+    }
+    G.gameInterval = setInterval(function tick() {
+        if (document.getElementById('modal-overlay').classList.contains('active')) {
+            updateGameUI();
+            return;
+        }
+        if (G.isGameOver || G.eventActive || G.nightPaused) return;
+        const realElapsed = (Date.now() - G.nightStartTime) / 1000 + G.nightElapsedReal;
+        const newTime = Math.floor(realElapsed);
+        while (G.timeSurvived < newTime) {
+            G.timeSurvived++;
+            const currentSecond = G.timeSurvived;
+            // Авто-тап выживших
+            if (G.rescued.length > 0) {
+                survivorAutoTapTimer++;
+                if (survivorAutoTapTimer >= 2) {
+                    survivorAutoTapTimer = 0;
+                    const efficiency = G.panicActive ? 0.4 : 1.0;
+                    G.rescued.forEach(() => {
+                        let warmthGain = 0.5 * efficiency;
+                        G.warmth = Math.min(G.warmth + warmthGain, G.maxWarmth);
+                        let coalGain = 0.05 * efficiency;
+                        G.coal += coalGain;
+                        G.coalEarnedThisRound += coalGain;
+                    });
+                }
+            }
+            // Потеря тепла
+            let baseLoss = 4;
+            if (G.upgrades.logs) baseLoss *= 0.85;
+            let dayFactor = 1 + (G.day - 1) * 0.3;
+            if (isSecret || isInfinite) dayFactor = 1;
+            const difficultyModifier = 1.2;
+            let fearMultiplier = 1 + (G.fear / 80);
+            fearMultiplier = Math.min(1.5, fearMultiplier);
+            let panicLoss = G.panicActive ? 2.8 : 1.0;
+            let candleHeal = 0;
+            if (G.upgrades.candle) {
+                candleCounter++;
+                if (candleCounter >= 10) { candleCounter = 0; candleHeal = 2; }
+            }
+            let crystalHeal = 0;
+            if (G.upgrades.heat_crystal) {
+                heatCrystalCounter++;
+                if (heatCrystalCounter >= 1) { heatCrystalCounter = 0; crystalHeal = 2; }
+            }
+            let shelterReduction = 1 - (G.shelterBonus.warmthLossReduce || 0);
+            let extraDifficulty = 1;
+            if (isInfinite || isSecret) {
+                infiniteCounter++;
+                if (infiniteCounter % 60 === 0) {
+                    extraDifficulty = 1 + Math.floor(infiniteCounter / 60) * 0.1;
+                }
+            }
+            let warmthLoss = baseLoss * dayFactor * difficultyModifier * fearMultiplier * panicLoss * shelterReduction * extraDifficulty;
+            G.warmth -= warmthLoss;
+            G.warmth += candleHeal + crystalHeal;
+            G.warmth = Math.max(0, Math.min(G.warmth, G.maxWarmth));
+            // Рост страха
+            let fearGrowth = 1.5 + G.day * 0.3;
+            let fearMod = 0;
+            if (G.upgrades.amulet) fearMod -= 2;
+            fearMod -= G.shelterBonus.fearReduce;
+            if (G.rescued.some(p => p.type === 'vera')) fearMod -= 0.5;
+            fearGrowth += fearMod;
+            if (isSecret) fearGrowth *= 2.5;
+            if (isInfinite) fearGrowth *= (1 + infiniteCounter * 0.01);
+            fearGrowth = Math.max(0, fearGrowth);
+            G.fear = Math.min(MAX_FEAR, G.fear + fearGrowth);
+            if (G.panicImmunity > 0) G.panicImmunity--;
+            // ============================================================
+            //  ИСПРАВЛЕНИЕ ДЛЯ INSANITY – если концовка уже получена, не завершаем
+            // ============================================================
+            if (G.fear >= MAX_FEAR) {
+                if (G.endings.includes('insanity')) {
+                    // Уже было безумие – просто паника
+                    if (!G.panicActive && G.panicImmunity === 0) {
+                        G.panicActive = true;
+                        G.panicTimer = 18;
+                        G.warmth = Math.max(0, G.warmth - 60);
+                        document.getElementById('story-text').innerText = "💀 ПАНИКА! Тьма врывается в сознание, огонь почти погас...";
+                    }
+                } else {
+                    const hasVera = G.rescued.some(p => p.type === 'vera');
+                    const hasCharms = G.upgrades.upgraded_charms;
+                    if (!hasVera && !hasCharms) {
+                        G.isGameOver = true;
+                        if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
+                        if (!G.endings.includes('insanity')) {
+                            G.endings.push('insanity');
+                            saveGame();
+                        }
+                        document.getElementById('story-text').innerHTML = '🌀 Ваш разум не выдержал тьмы. Вы сошли с ума. КОНЕЦ – БЕЗУМИЕ.';
+                        const container = document.getElementById('choices-container');
+                        container.innerHTML = '';
+                        const b = document.createElement('button');
+                        b.className = 'btn';
+                        b.innerText = 'Узнать свою судьбу';
+                        b.onclick = () => {
+                            showEnding('insanity');
+                        };
+                        container.appendChild(b);
+                        updateGameUI();
+                        return;
+                    } else {
+                        if (!G.panicActive && G.panicImmunity === 0) {
+                            G.panicActive = true;
+                            G.panicTimer = 18;
+                            G.warmth = Math.max(0, G.warmth - 60);
+                            document.getElementById('story-text').innerText = "💀 ПАНИКА! Тьма врывается в сознание, огонь почти погас...";
+                        }
+                    }
+                }
+            }
+            if (G.panicActive) {
+                G.panicTimer--;
+                if (G.panicTimer <= 0) {
+                    G.panicActive = false;
+                    G.fear = Math.min(85, G.fear);
+                    G.panicImmunity = 10;
+                    document.getElementById('story-text').innerText = "Вы взяли себя в руки. Страх отступил.";
+                }
+            }
+            // Автодобыча
+            if (G.upgrades.mine) {
+                mineCounter++;
+                if (mineCounter >= 5) {
+                    mineCounter = 0;
+                    G.coal += 0.1;
+                    G.coalEarnedThisRound += 0.1;
+                }
+            }
+            if (G.rescued.some(p => p.type === 'anna')) {
+                if (currentSecond % 20 === 0 && currentSecond > 0) {
+                    G.coal += 0.1;
+                    G.coalEarnedThisRound += 0.1;
+                }
+            }
+            if (G.warmth <= 0) {
+                G.warmth = 0;
+                triggerGameOver();
+                return;
+            }
+            // ---- Боссы ----
+            if (G.day === 7 && !isSecret && !isInfinite && currentSecond === 60 && !G.bossActive && !G.isGameOver) {
+                G.bossActive = true;
+                G.bossHits = 0;
+                G.bossAttackTimer = 0;
+                document.getElementById('boss-container').style.display = 'block';
+                document.getElementById('boss-hp').innerText = G.bossMaxHits;
+                document.getElementById('boss-bar').style.width = '100%';
+                document.getElementById('story-text').innerHTML = '👑 КОРОЛЬ МРАКА ЯВИЛСЯ! Атакуйте его!';
+                bossAppearSound.currentTime = 0;
+                bossAppearSound.play().catch(() => {});
+            }
+            if (G.bossActive) {
+                G.bossAttackTimer++;
+                if (G.bossAttackTimer >= 5) {
+                    G.bossAttackTimer = 0;
+                    if (Math.random() > 0.5) {
+                        G.warmth = Math.max(0, G.warmth - 10);
+                        document.getElementById('story-text').innerHTML = 'Король обрушил на вас волну холода! -10 тепла.';
+                    } else {
+                        G.fear = Math.min(MAX_FEAR, G.fear + 5);
+                        document.getElementById('story-text').innerHTML = 'Взгляд Короля вселяет ужас! +5 страха.';
+                    }
+                    bossAttackSound.currentTime = 0;
+                    bossAttackSound.play().catch(() => {});
+                    if (G.warmth <= 0) {
+                        G.warmth = 0;
+                        triggerGameOver();
+                        return;
+                    }
+                    // Проверка страха при атаке Короля
+                    if (G.fear >= MAX_FEAR) {
+                        if (G.endings.includes('insanity')) {
+                            if (!G.panicActive && G.panicImmunity === 0) {
+                                G.panicActive = true;
+                                G.panicTimer = 18;
+                                G.warmth = Math.max(0, G.warmth - 60);
+                                document.getElementById('story-text').innerText = "💀 ПАНИКА! Тьма врывается в сознание, огонь почти погас...";
+                            }
+                        } else {
+                            const hasVera = G.rescued.some(p => p.type === 'vera');
+                            const hasCharms = G.upgrades.upgraded_charms;
+                            if (!hasVera && !hasCharms) {
+                                G.isGameOver = true;
+                                if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
+                                if (!G.endings.includes('insanity')) {
+                                    G.endings.push('insanity');
+                                    saveGame();
+                                }
+                                document.getElementById('story-text').innerHTML = '🌀 Ваш разум не выдержал тьмы. Вы сошли с ума. КОНЕЦ – БЕЗУМИЕ.';
+                                const container = document.getElementById('choices-container');
+                                container.innerHTML = '';
+                                const b = document.createElement('button');
+                                b.className = 'btn';
+                                b.innerText = 'Узнать свою судьбу';
+                                b.onclick = () => {
+                                    showEnding('insanity');
+                                };
+                                container.appendChild(b);
+                                updateGameUI();
+                                return;
+                            } else {
+                                if (!G.panicActive && G.panicImmunity === 0) {
+                                    G.panicActive = true;
+                                    G.panicTimer = 18;
+                                    G.warmth = Math.max(0, G.warmth - 60);
+                                    document.getElementById('story-text').innerText = "💀 ПАНИКА! Тьма врывается в сознание, огонь почти погас...";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Теневой Ассасин (3-я ночь)
+            if (G.day === 3 && !isSecret && !isInfinite && currentSecond === 60 && !G.boss3Defeated && !G.boss3Active) {
+                startBoss3();
+            }
+            if (G.boss3Active) {
+                G.boss3AttackTimer++;
+                if (G.boss3AttackTimer >= 3) {
+                    G.boss3AttackTimer = 0;
+                    G.warmth = Math.max(0, G.warmth - 5);
+                    G.fear = Math.min(MAX_FEAR, G.fear + 3);
+                    document.getElementById('story-text').innerHTML = 'Ассасин полоснул тьмой! -5 тепла, +3 страха.';
+                    bossAttackSound.currentTime = 0;
+                    bossAttackSound.play().catch(() => {});
+                    if (G.warmth <= 0) {
+                        triggerGameOver();
+                        return;
+                    }
+                }
+            }
+            // Секретная ночь: оборотни-тени
+            if (isSecret && currentSecond % 30 === 0 && currentSecond > 0 && !G.eventActive && !G.werewolfBribed) {
+                G.secretEventTimer++;
+                startWerewolfEvent();
+            }
+            // Сюжетные события
+            if (!isSecret && !isInfinite && G.day <= 6) {
+                checkStoryEvents();
+                if (G.timeSurvived === 45 && G.heraldDaysSurvived < 3) {
+                    startHeraldEvent();
+                }
+            }
+            checkRandomNightEvent();
+            checkAchievements();
+            G.nightCounters.mineCounter = mineCounter;
+            G.nightCounters.candleCounter = candleCounter;
+            G.nightCounters.infiniteCounter = infiniteCounter;
+            G.nightCounters.survivorAutoTapTimer = survivorAutoTapTimer;
+            G.nightCounters.randomEventTimer = randomEventTimer;
+            G.nightCounters.heatCrystalCounter = heatCrystalCounter;
+            tickCooldowns();
+            updateGameUI();
+            G.saveCounter++;
+            if (G.saveCounter % 10 === 0) {
+                saveGame();
+            }
+            // Проверка окончания ночи
+            if (!isInfinite && currentSecond * 1000 >= durationMs) {
+                if (G.day === 7 && !isSecret && !isInfinite && G.bossActive) {
+                    triggerGameOver();
+                    return;
+                }
+                clearInterval(G.gameInterval);
+                G.gameInterval = null;
+                if (!isSecret) {
+                    G.flags.nightsCompleted[G.day] = true;
+                    if (G.day === 1 && !G.flags.night1Done) { G.flags.night1Done = true; addLoreNote('note_1_1'); addLoreNote('note_1_2'); }
+                    if (G.day === 2 && !G.flags.night2Done) { G.flags.night2Done = true; addLoreNote('note_1_3'); addLoreNote('note_1_4'); }
+                    if (G.day === 3 && !G.flags.night3Done) { G.flags.night3Done = true; }
+                    if (G.day === 4 && !G.flags.night4Done) { G.flags.night4Done = true; addLoreNote('note_2_1'); addLoreNote('note_2_2'); }
+                    if (G.day === 5 && !G.flags.night5Done) { G.flags.night5Done = true; addLoreNote('note_2_3'); }
+                    if (G.day === 6 && !G.flags.night6Done) { G.flags.night6Done = true; addLoreNote('note_2_6'); }
+                    if (G.day === 7 && !G.flags.night7Done) { G.flags.night7Done = true; }
+                }
+                if (isSecret) {
+                    G.flags.secretNightCompleted = true;
+                    if (!G.flags.secretNightDone) { G.flags.secretNightDone = true; addLoreNote('note_3_3'); addLoreNote('note_3_4'); addLoreNote('note_3_5'); addLoreNote('note_3_6'); }
+                    showEnding('secret_victory');
+                } else if (G.day < 7) {
+                    G.fear = Math.max(0, G.fear - 10);
+                    G.day++;
+                    saveGame();
+                    showDayTransition();
+                } else if (G.day === 7) {
+                    if (!G.bossActive) {
+                        if (G.rescued.length >= 5 && (G.upgrades.amulet || G.upgrades.wall || G.upgrades.candle || G.upgrades.quest_amulet)) {
+                            showEnding('true_victory');
+                        } else {
+                            showEnding('victory');
+                        }
+                    }
+                }
+                updateMusic('game-screen', false);
+                return;
+            }
+        }
+        updateGameUI();
+    }, 200);
+}
+
+// ============================================================
+//  ПРОДОЛЖЕНИЕ НОЧИ
+// ============================================================
+function continueNight() {
+    if (!G.nightPaused) return;
+    startNight(G.isSecretNight, G.isInfinite, G.day, true);
+}
+
+// ============================================================
+//  ВЫХОД В МЕНЮ
+// ============================================================
+function quitToMenu() {
+    if (G.gameInterval) {
+        clearInterval(G.gameInterval);
+        G.gameInterval = null;
+        G.nightElapsedReal += (Date.now() - G.nightStartTime) / 1000;
+        G.nightPaused = true;
+        saveGame();
+    }
+    G.eventActive = false;
+    G.nightPreviewActive = false;
+    document.getElementById('fire-btn').classList.remove('fire-disabled');
+    document.getElementById('choices-container').innerHTML = '';
+    document.getElementById('story-text').innerText = getDefaultStoryText();
+    document.getElementById('fire-btn').style.display = 'block';
+    document.getElementById('bar-container').style.display = 'block';
+    document.getElementById('vignette').style.display = 'block';
+    document.getElementById('story-content').style.display = 'block';
+    document.getElementById('radio-report').style.display = 'none';
+    document.getElementById('boss-container').style.display = 'none';
+    document.getElementById('boss3-container').style.display = 'none';
+    G.bossActive = false;
+    G.boss3Active = false;
+    saveGame();
+    switchScreen('menu-screen');
+    updateAbilityBarVisibility();
+    updateContinueButton();
+    updateMusic('menu-screen', false);
+}
+
+// ============================================================
+//  ВЫБОР НОЧИ
+// ============================================================
+function renderNightSelect() {
+    const grid = document.getElementById('night-grid');
+    let html = '';
+    for (let i=1; i<=7; i++) {
+        let disabled = '';
+        if (i > 1 && !G.flags.nightsCompleted[i-1]) disabled = 'disabled';
+        html += `<button class="night-btn" ${disabled} onclick="startNightFromSelect(${i})">Ночь ${i}</button>`;
+    }
+    let secretDisabled = !G.flags.secretNightUnlocked ? 'disabled' : '';
+    html += `<button class="night-btn" ${secretDisabled} onclick="startNightFromSelect(8)">8-я Секретная</button>`;
+    let infiniteDisabled = !G.flags.secretNightCompleted ? 'disabled' : '';
+    html += `<button class="night-btn" ${infiniteDisabled} onclick="startNightFromSelect(9)">∞ Бесконечная</button>`;
+    grid.innerHTML = html;
+}
+
+function startNightFromSelect(choice) {
+    if (choice >= 1 && choice <= 7) {
+        if (choice > 1 && !G.flags.nightsCompleted[choice-1]) {
+            alert(`Ночь ${choice} ещё не пройдена. Сначала пройдите ночь ${choice-1}.`);
+            return;
+        }
+        G.day = choice;
+        G.isSecretNight = false;
+        G.isInfinite = false;
+        switchScreen('game-screen');
+        startNight(false, false, choice);
+    } else if (choice === 8) {
+        if (!G.flags.secretNightUnlocked) {
+            alert('Секретная ночь ещё не разблокирована. Соберите 3 редких камня и выполните задание торговца.');
+            return;
+        }
+        G.isSecretNight = true;
+        G.isInfinite = false;
+        switchScreen('game-screen');
+        startNight(true, false, 8);
+    } else if (choice === 9) {
+        if (!G.flags.secretNightCompleted) {
+            alert('Бесконечная ночь доступна только после прохождения секретной ночи.');
+            return;
+        }
+        G.isSecretNight = false;
+        G.isInfinite = true;
+        G.day = 8;
+        switchScreen('game-screen');
+        startNight(false, true, 8);
+    }
+}
+
+// ============================================================
+//  ПРЕДПРОСМОТР НОЧИ
+// ============================================================
+function showNightPreview() {
+    G.nightPreviewActive = true;
+    G.isDayPhase = false;
+    saveGame();
+    document.getElementById('fire-btn').style.display = 'none';
+    document.getElementById('bar-container').style.display = 'none';
+    document.getElementById('vignette').style.display = 'none';
+    document.getElementById('story-content').style.display = 'none';
+    const radio = document.getElementById('radio-report');
+    radio.style.display = 'block';
+    const randomPhrase = RADIO_PHRASES[Math.floor(Math.random() * RADIO_PHRASES.length)];
+    let maxTime = G.day === 7 ? 120 : (G.isSecretNight ? SECRET_NIGHT_DURATION : NIGHT_DURATION);
+    radio.innerHTML = `
+        <div class="title">🌙 ПРИБЛИЖАЕТСЯ НОЧЬ ${G.day}</div>
+        <div class="line">🔥 Тепло: <span class="highlight">${Math.floor(G.warmth)}</span> / ${G.maxWarmth}</div>
+        <div class="line">😨 Страх: <span class="highlight">${Math.floor(G.fear)}</span> / ${MAX_FEAR}</div>
+        <div class="line">⛏️ Запас угля: <span class="highlight">${G.coal.toFixed(2)}</span></div>
+        <div class="line">🍖 Шашлык: <span class="highlight">${G.meat}</span></div>
+        <div class="weather">📻 ${randomPhrase}</div>
+        <button class="btn" style="margin-top:16px;" id="start-night-btn">Начать ночь ${G.day}</button>
+    `;
+    document.getElementById('start-night-btn').onclick = () => {
+        radio.style.display = 'none';
+        document.getElementById('story-content').style.display = 'block';
+        document.getElementById('fire-btn').style.display = 'block';
+        document.getElementById('bar-container').style.display = 'block';
+        document.getElementById('vignette').style.display = 'block';
+        G.nightPreviewActive = false;
+        startNight(false, false, G.day);
+    };
+    updateAbilityBarVisibility();
+    updateContinueButton();
+    updateMusic('game-screen', false);
+}
+
+// ============================================================
+//  ДНЕВНАЯ ФАЗА
+// ============================================================
+function startDayPhase() {
+    G.isDayPhase = true;
+    G.nightPreviewActive = false;
+    saveGame();
+    document.getElementById('fire-btn').style.display = 'none';
+    document.getElementById('bar-container').style.display = 'none';
+    document.getElementById('vignette').style.display = 'none';
+    document.getElementById('story-content').style.display = 'block';
+    document.getElementById('radio-report').style.display = 'none';
+    document.getElementById('boss-container').style.display = 'none';
+    document.getElementById('boss3-container').style.display = 'none';
+    G.bossActive = false;
+    G.boss3Active = false;
+    updateMusic('game-screen', false);
+    let dayText = `ДЕНЬ ПЕРЕД ${G.day}-й НОЧЬЮ. Солнце едва пробивается сквозь пелену. Что вы предпримете?`;
+    let choices = [
+        { text: "Обыскать руины в поисках угля", action: () => {
+            let found = (Math.random() * 1.5 + 0.5);
+            G.coal += found;
+            G.coalEarnedThisRound += found;
+            if (Math.random() < 0.4 && G.rareStones < 3 && !G.flags.secretNightUnlocked) {
+                G.rareStones++;
+                showModal('💎 Находка!', 'Вы нашли редкий камень! (всего ' + G.rareStones + '/3)');
+            }
+            if (Math.random() < 0.2 && G.notes.length < LORE_NOTES.length) {
+                const available = LORE_NOTES.filter(n => !G.flags.notesAdded.includes(n.id));
+                if (available.length) {
+                    const note = available[Math.floor(Math.random() * available.length)];
+                    addLoreNote(note.id);
+                    endDayPhase(`Вы нашли ${found.toFixed(2)} угля и записку! Проверьте раздел "Записки".`);
+                    return;
+                }
+            }
+            if (Math.random() > 0.7) {
+                G.fear = Math.min(MAX_FEAR, G.fear + 10);
+                endDayPhase(`Вы нашли ${found.toFixed(2)} угля, но встретили тени – страх +10.`);
+            } else {
+                endDayPhase(`Вы нашли ${found.toFixed(2)} кг угля!`);
+            }
+        }},
+        { text: "Позвать выживших", action: () => {
+            if (G.rescued.length >= 7) {
+                endDayPhase("Вы уже спасли всех, кого можно. Город опустел.");
+                return;
+            }
+            if (Math.random() > 0.3) {
+                let types = ['anna','vera','darya','generic'];
+                let type = types[Math.floor(Math.random() * types.length)];
+                let name;
+                if (type === 'generic') {
+                    name = GENERIC_NAMES[Math.floor(Math.random() * GENERIC_NAMES.length)];
+                } else {
+                    name = SURVIVOR_TYPES[type].name;
+                }
+                if (type !== 'generic' && G.rescued.some(p => p.type === type)) {
+                    endDayPhase(`Вы уже спасли ${name}.`);
+                    return;
+                }
+                let story = SURVIVOR_TYPES[type].story;
+                G.rescued.push({ type, name, story });
+                if (Math.random() < 0.2 && G.rareStones < 3 && !G.flags.secretNightUnlocked) {
+                    G.rareStones++;
+                    showModal('💎 Находка!', 'При спасении вы нашли редкий камень! (всего ' + G.rareStones + '/3)');
+                }
+                endDayPhase(`Вы спасли ${name}.`);
+            } else {
+                endDayPhase(`Город кажется пустым. Вы никого не нашли.`);
+            }
+        }},
+        { text: "Медитировать (снизить страх)", action: () => {
+            let reduction = Math.floor(Math.random() * 15) + 5;
+            G.fear = Math.max(0, G.fear - reduction);
+            endDayPhase(`Медитация успокоила ум. Страх -${reduction}.`);
+        }}
+    ];
+    const uniqueRescued = G.rescued.filter(p => p.type !== 'generic');
+    if (uniqueRescued.length > 0) {
+        choices.push({
+            text: "💬 Поговорить с выжившим",
+            action: () => {
+                showModal('💬 Разговор', '', null);
+                const modalText = document.getElementById('modal-text');
+                modalText.innerHTML = '<b>Выберите, с кем поговорить:</b><br>';
+                uniqueRescued.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn';
+                    btn.style.fontSize = '16px';
+                    btn.style.padding = '10px';
+                    btn.textContent = SURVIVOR_TYPES[p.type].emoji + ' ' + p.name;
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        document.getElementById('modal-overlay').classList.remove('active');
+                        startDialog(p.type);
+                    });
+                    modalText.appendChild(btn);
+                });
+                document.getElementById('modal-overlay').classList.add('active');
+            }
+        });
+    }
+    startEvent(dayText, choices);
+    updateAbilityBarVisibility();
+    updateContinueButton();
+}
+
+function endDayPhase(resultText) {
+    document.getElementById('story-text').innerText = resultText;
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.innerText = `Дождаться сумерек (Ночь ${G.day})`;
+    b.onclick = () => { showNightPreview(); };
+    container.appendChild(b);
+    checkAchievements();
+    saveGame();
+}
+
+// ============================================================
+//  ДНЕВНАЯ СВОДКА (showDayTransition)
+// ============================================================
+function showDayTransition() {
+    document.getElementById('fire-btn').style.display = 'none';
+    document.getElementById('bar-container').style.display = 'none';
+    document.getElementById('vignette').style.display = 'none';
+    document.getElementById('story-content').style.display = 'none';
+    const radio = document.getElementById('radio-report');
+    radio.style.display = 'block';
+    const randomPhrase = RADIO_PHRASES[Math.floor(Math.random() * RADIO_PHRASES.length)];
+    radio.innerHTML = `
+        <div class="title">📻 РАДИО-СВОДКА – УТРО ДНЯ ${G.day}</div>
+        <div class="line">🔥 Тепло: <span class="highlight">${Math.floor(G.warmth)}</span> / ${G.maxWarmth}</div>
+        <div class="line">😨 Страх: <span class="highlight">${Math.floor(G.fear)}</span> / ${MAX_FEAR}</div>
+        <div class="line">⛏️ Уголь: <span class="highlight">${G.coal.toFixed(2)}</span></div>
+        <div class="line">🍖 Шашлык: <span class="highlight">${G.meat}</span></div>
+        <div class="weather">📻 ${randomPhrase}</div>
+        <button class="btn" style="margin-top:12px;" id="continue-day-btn">Продолжить день</button>
+    `;
+    document.getElementById('continue-day-btn').onclick = () => {
+        radio.style.display = 'none';
+        document.getElementById('story-content').style.display = 'block';
+        showFullscreenAd(() => {
+            startDayPhase();
+        });
+    };
+    updateAbilityBarVisibility();
+    updateContinueButton();
+    updateMusic('game-screen', false);
+}
+
+// ============================================================
+//  СЮЖЕТНЫЕ СОБЫТИЯ
+// ============================================================
+function checkStoryEvents() {
+    const events = {
+        1: [
+            { time:15, text:"ПЕРВАЯ НОЧЬ (15с): В дверь стучат. Голос умоляет открыть.",
+              choices: [
+                { text:"Впустить незнакомца", action:() => {
+                    let type='generic', name='Старик';
+                    if (!G.rescued.some(p=>p.type===type)) {
+                        G.rescued.push({type,name,story:SURVIVOR_TYPES[type].story});
+                        resolveEvent("Вы впустили старика. Он даёт вам +2 угля.",2,5,-5);
+                    } else resolveEvent("Вы впустили незнакомца, но он оказался вором! -2 угля.",-2,0,10);
+                }},
+                { text:"Не открывать", action:() => resolveEvent("Крики стихли. Страх +15.",0,0,15) }
+              ]},
+        ],
+        2: [
+            { time:20, text:"ВТОРАЯ НОЧЬ (20с): Тень в углу тянется к очагу.",
+              choices: G.upgrades.wall ? 
+                [{ text:"Барьер отражает тень", action:() => resolveEvent("Тень разбилась о невидимую стену.",0,0,0) }] :
+                [
+                  { text:"Крикнуть", action:() => resolveEvent("Тень исчезла, но страх +20.",0,0,20) },
+                  { text:"Подбросить угля", action:() => resolveEvent("Яркий свет разогнал тень. -1 угля, страх -10.",-1,0,-10) }
+                ]
+            },
+        ],
+        3: [
+            { time:30, text:"ТРЕТЬЯ НОЧЬ (30с): Шёпот: «Отдай половину угля или страх поглотит тебя».",
+              choices: [
+                { text:"Отдать половину", action:() => {
+                    let tax=G.coal/2; G.coal-=tax; G.coalEarnedThisRound=Math.max(0,G.coalEarnedThisRound-tax);
+                    resolveEvent("Шёпот исчез, тепло +35.",0,35,-15);
+                }},
+                { text:"Отказаться", action:() => resolveEvent("Тьма разгневалась! Тепло -20, страх +30.",0,-20,30) }
+              ]},
+        ],
+        4: [
+            { time:25, text:"ЧЕТВЁРТАЯ НОЧЬ (25с): Сажа с потолка, в ней красные глаза.",
+              choices: [
+                { text:"Смотреть в глаза", action:() => resolveEvent("Вы встретили ужас, страх +40, но нашли +1 угля.",1,0,40) },
+                { text:"Отвести взгляд и подкинуть углей", action:() => resolveEvent("Огонь вспыхнул, глаза исчезли. Тепло +15, страх -10.",0,15,-10) }
+              ]},
+        ],
+        5: [
+            { time:20, text:"ПЯТАЯ НОЧЬ (20с): Тьма поёт, проникает в разум.",
+              choices: [
+                { text:"Заткнуть уши ( -1 угля)", action:() => { G.coal=Math.max(0,G.coal-1); G.coalEarnedThisRound=Math.max(0,G.coalEarnedThisRound-1); resolveEvent("Пение заглушено.",0,0,-10); } },
+                { text:"Слушать", action:() => resolveEvent("Песня заворожила. Страх +40, тепло -20.",0,-20,40) }
+              ]},
+        ],
+        6: [
+            { time:30, text:"ШЕСТАЯ НОЧЬ (30с): Тени пробиваются из-под пола.",
+              choices: [
+                { text:"Укрепить пол камнями", action:() => resolveEvent("Проход заблокирован, страх +15.",0,0,15) },
+                { text:"Полить огонь маслом (риск)", action:() => {
+                    if (Math.random()>0.7) resolveEvent("Вспышка! +40 тепла.",0,40,-20);
+                    else resolveEvent("Масло залило угли, -40 тепла.",0,-40,30);
+                }}
+              ]},
+        ],
+    };
+    if (events[G.day]) {
+        for (let evt of events[G.day]) {
+            if (G.timeSurvived === evt.time && !G.dayEventsTriggered[evt.time]) {
+                G.dayEventsTriggered[evt.time] = true;
+                startEvent(evt.text, evt.choices);
+                break;
+            }
+        }
+    }
+}
+
+function startEvent(text, choices) {
+    G.eventActive = true;
+    document.getElementById('story-text').innerHTML = text;
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    choices.forEach(choice => {
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.style.fontSize = '17px';
+        b.style.padding = '12px';
+        b.innerText = choice.text;
+        b.onclick = choice.action;
+        container.appendChild(b);
+    });
+    document.getElementById('fire-btn').classList.add('fire-disabled');
+    updateAbilityBarVisibility();
+}
+
+function resolveEvent(resultText, coalChange, warmthChange, fearChange) {
+    const mod = applyEventModifiers(coalChange, warmthChange, fearChange);
+    coalChange = mod.coalChange;
+    warmthChange = mod.warmthChange;
+    fearChange = mod.fearChange;
+    G.eventActive = false;
+    document.getElementById('story-text').innerHTML = resultText;
+    document.getElementById('choices-container').innerHTML = '';
+    G.coal = Math.max(0, G.coal + coalChange);
+    G.coalEarnedThisRound = Math.max(0, G.coalEarnedThisRound + coalChange);
+    G.warmth = Math.max(0, Math.min(G.warmth + warmthChange, G.maxWarmth));
+    G.fear = Math.max(0, Math.min(G.fear + fearChange, MAX_FEAR));
+    updateGameUI();
+    document.getElementById('fire-btn').classList.remove('fire-disabled');
+    saveGame();
+    checkAchievements();
+    updateAbilityBarVisibility();
+    checkAndAddAutoNotes();
+}
+
+function checkRandomNightEvent() {
+    if (G.isGameOver || G.eventActive || G.isDayPhase || G.nightPaused) return;
+    if (G.upgrades.wall) return;
+    let randomEventTimer = G.nightCounters.randomEventTimer || 0;
+    randomEventTimer++;
+    const interval = G.isSecretNight ? 5 : 10;
+    if (randomEventTimer >= interval + Math.floor(Math.random() * 5)) {
+        randomEventTimer = 0;
+        if (Math.random() < 0.3) {
+            const events = [
+                { text:'Шорох за стеной...', fear:5 },
+                { text:'Скрип половиц...', fear:3 },
+                { text:'Мимолётная тень мелькнула за окном.', fear:8 },
+                { text:'Холодный ветер проник в щели.', fear:2, warmth:-3 },
+            ];
+            const evt = events[Math.floor(Math.random() * events.length)];
+            let warmthCh = evt.warmth || 0;
+            let fearCh = evt.fear || 0;
+            const mod = applyEventModifiers(0, warmthCh, fearCh);
+            warmthCh = mod.warmthChange;
+            fearCh = mod.fearChange;
+            G.fear = Math.min(MAX_FEAR, G.fear + fearCh);
+            if (warmthCh !== 0) G.warmth = Math.max(0, Math.min(G.warmth + warmthCh, G.maxWarmth));
+            document.getElementById('story-text').innerHTML = evt.text + (warmthCh ? ' Тепло ' + (warmthCh>0?'+':'-') + Math.abs(warmthCh) : '') + ' Страх ' + (fearCh>0?'+':'-') + Math.abs(fearCh);
+            setTimeout(() => {
+                if (!G.eventActive && !G.isGameOver) document.getElementById('story-text').innerText = getDefaultStoryText();
+            }, 2000);
+            updateGameUI();
+            saveGame();
+        }
+    }
+    G.nightCounters.randomEventTimer = randomEventTimer;
+}
+
+// ============================================================
+//  КОНЦОВКИ (showEnding) – с рекламой для секретной и бесконечной
+// ============================================================
+function showEnding(type) {
+    G.isGameOver = true;
+    if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
+    const displayEnding = () => {
+        let title, text;
+        switch(type) {
+            case 'true_victory':
+                title='🌟 ИСТИННЫЙ КОНЕЦ';
+                text=`Вы и ваши союзники (${G.rescued.length} спасённых) сокрушили Короля Мрака! Великая Тьма навсегда отступила. Город возродится. Вы – легенда!<br><br>Спасено: ${G.rescued.length}<br>Записок найдено: ${G.notes.length}`;
+                break;
+            case 'victory':
+                title='✨ ПОБЕДА';
+                text=`Вы победили Короля Мрака! Спасено людей: ${G.rescued.length}. Тьма отступила.<br><br>Записок: ${G.notes.length}`;
+                break;
+            case 'defeat':
+                title='💀 ПОРАЖЕНИЕ';
+                text=`Огонь погас. Тьма поглотила вас. Вы потеряли 5 угля. Попробуйте снова.`;
+                break;
+            case 'secret_victory':
+                title='🔴 СЕКРЕТНАЯ ПОБЕДА';
+                text=`Вы выжили в Кровавую Луну! Тьма развеяна навсегда. Вы – истинный Хранитель Света.<br><br>Спасено: ${G.rescued.length}<br>Записок: ${G.notes.length}`;
+                break;
+            case 'dark_friends':
+                title='👥 ТЁМНЫЕ ДРУЗЬЯ';
+                text=`Теневой Вестник забрал вас во тьму. Теперь у вас есть тёмные друзья, но мир погрузился в вечную ночь.`;
+                break;
+            case 'insanity':
+                title='🌀 БЕЗУМИЕ';
+                text=`Ваш разум не выдержал тьмы. Вы навсегда потеряны в безумии.`;
+                break;
+            default:
+                title='💀 ПОРАЖЕНИЕ';
+                text=`Игра окончена.`;
+                break;
+        }
+        if (!G.endings.includes(type)) G.endings.push(type);
+        document.getElementById('ending-title').innerText = title;
+        document.getElementById('ending-text').innerHTML = text;
+        switchScreen('ending-screen');
+        saveGame();
+        renderEndings();
+        updateAbilityBarVisibility();
+        updateContinueButton();
+        updateMusic('ending-screen', false);
+    };
+    if ((type === 'secret_victory') || (type === 'victory' && G.isInfinite)) {
+        showFullscreenAd(displayEnding);
+    } else {
+        displayEnding();
+    }
+}
+
+// ============================================================
+//  ПОРАЖЕНИЕ (triggerGameOver)
+// ============================================================
+function triggerGameOver() {
+    G.isGameOver = true;
+    if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
+    G.coal = Math.max(0, G.coal - 5);
+    if (!G.endings.includes('defeat')) {
+        G.endings.push('defeat');
+        saveGame();
+    }
+    document.getElementById('story-text').innerHTML = `Огонь погас на ${G.isSecretNight ? 'Секретной' : G.day}-й ночи. Вы продержались ${G.timeSurvived}с. Потеряно 5 угля (осталось ${G.coal.toFixed(2)}).`;
+    const container = document.getElementById('choices-container');
+    container.innerHTML = '';
+    if (G.isSecretNight || G.isInfinite) {
+        showFullscreenAd(() => {
+            const b = document.createElement('button');
+            b.className = 'btn';
+            b.innerText = 'Вернуться в меню';
+            b.onclick = () => { saveGame(); switchScreen('menu-screen'); };
+            container.appendChild(b);
+        });
+    } else {
+        const b = document.createElement('button');
+        b.className = 'btn';
+        b.innerText = 'Вернуться в меню';
+        b.onclick = () => { saveGame(); switchScreen('menu-screen'); };
+        container.appendChild(b);
+    }
+    updateGameUI();
+    updateAbilityBarVisibility();
+    updateContinueButton();
+    updateMusic('game-screen', false);
+}
+
+// ============================================================
+//  ДОСТИЖЕНИЯ
+// ============================================================
+function checkAchievements() {
+    let unlocked = false;
+    ACHIEVEMENTS.forEach(def => {
+        if (!G.achievements.includes(def.id) && def.check()) {
+            G.achievements.push(def.id);
+            G.coal += 10;
+            G.coalEarnedThisRound += 10;
+            unlocked = true;
+            showModal('🏅 Достижение', `${def.title} – ${def.desc} (+10 угля)`);
+            saveGame();
+        }
+    });
+    if (unlocked) renderAchievements();
+}
+
+function renderAchievements() {
+    const grid = document.getElementById('achievement-grid');
+    grid.innerHTML = '';
+    ACHIEVEMENTS.forEach(def => {
+        const div = document.createElement('div');
+        div.className = 'achievement-item' + (G.achievements.includes(def.id) ? ' unlocked' : '');
+        div.innerHTML = `<div class="ach-title">${def.title}</div><div style="font-size:12px;">${def.desc}</div>`;
+        grid.appendChild(div);
+    });
+}
+
+function renderEndings() {
+    const grid = document.getElementById('ending-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    ENDINGS.forEach(def => {
+        const div = document.createElement('div');
+        div.className = 'achievement-item' + (G.endings.includes(def.id) ? ' unlocked' : '');
+        div.innerHTML = `<div class="ach-title">${def.label}</div>`;
+        grid.appendChild(div);
+    });
+}
+
+function renderNotes() {
+    const list = document.getElementById('note-list');
+    if (G.notes.length === 0) {
+        list.innerHTML = '<div style="text-align:center;color:#888;">Вы пока не нашли ни одной записки. Исследуйте руины днём!</div>';
+        return;
+    }
+    const sorted = G.notes.slice();
+    list.innerHTML = sorted.map(n => `<div class="note-item">📜 ${n}</div>`).join('');
+}
+
+function confirmResetToNight1() {
+    if (confirm('Сбросить ночи и предметы? Весь прогресс (уголь, спасённые, записки, достижения, камни) сохранится. Вы начнёте с 1-й ночи без улучшений.')) {
+        resetGameState();
+        switchScreen('game-screen');
+        startNight(false, false, 1);
+    }
+}
+
+function resetGameState() {
+    G.day = 1; G.warmth = 100; G.maxWarmth = 120; G.fear = 0; G.timeSurvived = 0;
+    G.coalEarnedThisRound = 0; G.isGameOver = false; G.panicActive = false; G.panicTimer = 0;
+    G.panicImmunity = 0;
+    G.dayEventsTriggered = {}; G.isDayPhase = false; G.nightPreviewActive = false;
+    G.isSecretNight = false; G.isInfinite = false; G.coalCooldown = 0; G.prayCooldown = 0;
+    G.heraldDaysSurvived = 0; G.flags.nightsCompleted = {};
+    G.upgrades = { logs:false, pickaxe:false, wall:false, blanket:false, mine:false, amulet:false, candle:false, upgraded_windows:false, upgraded_charms:false, upgraded_door:false, quest_amulet:false, heat_crystal:false, meat_amulet:false };
+    G.shelterBonus = { warmthLossReduce:0, fearReduce:0, eventProtect:0 };
+    G.flags.metMerchant = false; G.flags.foundOldMap = false;
+    G.flags.usedArtifact = false; G.flags.finalChoice = null; G.flags.questRareStones = 0;
+    G.flags.merchantQuestActive = false;
+    G.clickCounter = 0;
+    G.nightPaused = false;
+    G.nightElapsedReal = 0;
+    G.nightCounters = {
+        mineCounter: 0,
+        candleCounter: 0,
+        infiniteCounter: 0,
+        survivorAutoTapTimer: 0,
+        randomEventTimer: 0,
+        heatCrystalCounter: 0
+    };
+    G.bossActive = false;
+    G.bossHits = 0;
+    G.bossAttackTimer = 0;
+    G.boss3Active = false;
+    G.boss3Hits = 0;
+    G.boss3AttackTimer = 0;
+    G.boss3Defeated = false;
+    G.secretEventTimer = 0;
+    G.werewolfBribed = false;
+    document.getElementById('boss-container').style.display = 'none';
+    document.getElementById('boss3-container').style.display = 'none';
+    G.flags.talkedToAnna = false;
+    G.flags.talkedToVera = false;
+    G.flags.talkedToDarya = false;
+    G.flags.firstHeraldMet = false;
+    G.flags.annaSaved = false;
+    G.flags.veraSaved = false;
+    G.flags.daryaSaved = false;
+    G.flags.boughtAmulet = false;
+    G.flags.boughtWall = false;
+    G.flags.boughtCandle = false;
+    G.flags.boughtBlanket = false;
+    G.flags.boughtHeatCrystal = false;
+    G.flags.boughtPickaxe = false;
+    G.flags.boughtMine = false;
+    G.flags.boughtWindows = false;
+    G.flags.boughtCharms = false;
+    G.flags.boughtDoor = false;
+    G.flags.night1Done = false;
+    G.flags.night2Done = false;
+    G.flags.night3Done = false;
+    G.flags.night4Done = false;
+    G.flags.night5Done = false;
+    G.flags.night6Done = false;
+    G.flags.night7Done = false;
+    G.flags.secretNightDone = false;
+    updateMaxWarmth();
+    saveGame();
+    if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
+    updateContinueButton();
+    updateMusic('menu-screen', false);
+}
+
+function showCredits() {
+    showModal('📖 О сюжете',
+        `Мир окутала Великая Тьма. Вы – один из немногих, у кого сохранился огонь.<br>` +
+        `Каждую ночь Тьма пытается погасить ваш очаг. Ваша задача – продержаться 7 ночей.<br><br>` +
+        `На пути вас ждут могучие враги: <b>Владыка Тьмы</b> и его слуги — <b>оборотни-тени</b>.<br>` +
+        `Только свет костра и ваша воля помогут одолеть их.<br><br>` +
+        `Удачи, Выживший! Пусть огонь всегда горит ярко!`
+    );
+}
+
+// ============================================================
+//  ОБРАБОТЧИК ВИДИМОСТИ
+// ============================================================
+function handleVisibilityChange() {
+    if (document.hidden) {
+        pauseAllMusic();
+        if (G.gameInterval && !G.isGameOver && !G.isDayPhase && !G.nightPreviewActive && !G.nightPaused) {
+            clearInterval(G.gameInterval);
+            G.gameInterval = null;
+            G.nightElapsedReal += (Date.now() - G.nightStartTime) / 1000;
+            G.nightPaused = true;
+            saveGame();
+        }
+    } else {
+        resumeMusic();
+        if (G.nightPaused && !G.isGameOver) {
+            continueNight();
+        }
+    }
+}
+
+// ============================================================
+//  СОХРАНЕНИЕ / ЗАГРУЗКА
+// ============================================================
+function saveGame() {
+    try {
+        const data = {
+            version: SAVE_VERSION,
+            coal: G.coal, meat: G.meat, maxMeatRecord: G.maxMeatRecord,
+            day: G.day, warmth: G.warmth, maxWarmth: G.maxWarmth,
+            fear: G.fear, timeSurvived: G.timeSurvived, coalEarnedThisRound: G.coalEarnedThisRound,
+            upgrades: G.upgrades, rescued: G.rescued, flags: G.flags,
+            playerName: G.playerName, isGameOver: G.isGameOver, panicActive: G.panicActive,
+            panicTimer: G.panicTimer, panicImmunity: G.panicImmunity,
+            dayEventsTriggered: G.dayEventsTriggered,
+            isDayPhase: G.isDayPhase, nightPreviewActive: G.nightPreviewActive,
+            notes: G.notes, achievements: G.achievements, endings: G.endings,
+            rareStones: G.rareStones, shelterBonus: G.shelterBonus,
+            isSecretNight: G.isSecretNight, isInfinite: G.isInfinite,
+            heraldDaysSurvived: G.heraldDaysSurvived,
+            coalCooldown: G.coalCooldown, prayCooldown: G.prayCooldown,
+            eventActive: G.eventActive,
+            nightsCompleted: G.flags.nightsCompleted,
+            clickCounter: G.clickCounter,
+            notesAdded: G.flags.notesAdded,
+            talkedToAnna: G.flags.talkedToAnna,
+            talkedToVera: G.flags.talkedToVera,
+            talkedToDarya: G.flags.talkedToDarya,
+            firstHeraldMet: G.flags.firstHeraldMet,
+            veraSaved: G.flags.veraSaved,
+            annaSaved: G.flags.annaSaved,
+            daryaSaved: G.flags.daryaSaved,
+            boughtAmulet: G.flags.boughtAmulet,
+            boughtWall: G.flags.boughtWall,
+            boughtCandle: G.flags.boughtCandle,
+            boughtBlanket: G.flags.boughtBlanket,
+            boughtHeatCrystal: G.flags.boughtHeatCrystal,
+            boughtPickaxe: G.flags.boughtPickaxe,
+            boughtMine: G.flags.boughtMine,
+            boughtWindows: G.flags.boughtWindows,
+            boughtCharms: G.flags.boughtCharms,
+            boughtDoor: G.flags.boughtDoor,
+            nightPaused: G.nightPaused,
+            nightElapsedReal: G.nightElapsedReal,
+            nightCounters: G.nightCounters,
+            bossActive: G.bossActive,
+            bossHits: G.bossHits,
+            bossAttackTimer: G.bossAttackTimer,
+            boss3Active: G.boss3Active,
+            boss3Hits: G.boss3Hits,
+            boss3AttackTimer: G.boss3AttackTimer,
+            boss3Defeated: G.boss3Defeated,
+            secretEventTimer: G.secretEventTimer,
+            night1Done: G.flags.night1Done,
+            night2Done: G.flags.night2Done,
+            night3Done: G.flags.night3Done,
+            night4Done: G.flags.night4Done,
+            night5Done: G.flags.night5Done,
+            night6Done: G.flags.night6Done,
+            night7Done: G.flags.night7Done,
+            secretNightDone: G.flags.secretNightDone,
+            secretNightUnlocked: G.flags.secretNightUnlocked,
+            secretNightCompleted: G.flags.secretNightCompleted,
+            merchantQuestActive: G.flags.merchantQuestActive,
+            metMerchant: G.flags.metMerchant,
+            usedArtifact: G.flags.usedArtifact,
+            finalChoice: G.flags.finalChoice,
+            questRareStones: G.flags.questRareStones,
+            foundOldMap: G.flags.foundOldMap,
+            meat_amulet: G.upgrades.meat_amulet,
+            lastAdStoneTime: G.flags.lastAdStoneTime
+        };
+        localStorage.setItem('fireGameSave', JSON.stringify(data));
+    } catch(e) {
+        console.warn('Ошибка сохранения:', e);
+    }
+}
+
+function loadGame() {
+    try {
+        const raw = localStorage.getItem('fireGameSave');
+        if (!raw) return false;
+        const data = JSON.parse(raw);
+        if (!data.version || data.version < 5) {
+            if (!data.lastAdStoneTime) data.lastAdStoneTime = 0;
+            data.version = 5;
+        }
+        G.coal = data.coal||0;
+        G.meat = data.meat||0;
+        G.maxMeatRecord = data.maxMeatRecord||0;
+        G.day = data.day||1;
+        G.warmth = data.warmth||100;
+        G.fear = data.fear||0;
+        G.timeSurvived = data.timeSurvived||0; G.coalEarnedThisRound = data.coalEarnedThisRound||0;
+        G.upgrades = data.upgrades||{};
+        G.rescued = data.rescued||[];
+        G.flags = data.flags||{};
+        const defaultFlags = {
+            nightsCompleted: {},
+            notesAdded: [],
+            talkedToAnna: false, talkedToVera: false, talkedToDarya: false,
+            firstHeraldMet: false, veraSaved: false, annaSaved: false, daryaSaved: false,
+            night1Done: false, night2Done: false, night3Done: false, night4Done: false,
+            night5Done: false, night6Done: false, night7Done: false, secretNightDone: false,
+            boughtAmulet: false, boughtWall: false, boughtCandle: false, boughtBlanket: false,
+            boughtHeatCrystal: false, boughtPickaxe: false, boughtMine: false,
+            boughtWindows: false, boughtCharms: false, boughtDoor: false,
+            metMerchant: false, foundOldMap: false, usedArtifact: false,
+            finalChoice: null, questRareStones: 0, merchantQuestActive: false,
+            secretNightUnlocked: false, secretNightCompleted: false,
+            lastAdStoneTime: 0
+        };
+        for (let key in defaultFlags) {
+            if (!(key in G.flags)) {
+                G.flags[key] = defaultFlags[key];
+            }
+        }
+        if (!Array.isArray(G.flags.notesAdded)) G.flags.notesAdded = [];
+        if (!G.flags.nightsCompleted) G.flags.nightsCompleted = {};
+        G.playerName = data.playerName||'Выживший'; G.isGameOver = data.isGameOver||false;
+        G.panicActive = data.panicActive||false; G.panicTimer = data.panicTimer||0;
+        G.panicImmunity = data.panicImmunity||0;
+        G.dayEventsTriggered = data.dayEventsTriggered||{};
+        G.isDayPhase = data.isDayPhase||false; G.nightPreviewActive = data.nightPreviewActive||false;
+        G.notes = data.notes||[]; G.achievements = data.achievements||[];
+        G.endings = data.endings||[]; G.rareStones = data.rareStones||0;
+        G.shelterBonus = data.shelterBonus||{ warmthLossReduce:0, fearReduce:0, eventProtect:0 };
+        G.isSecretNight = data.isSecretNight||false; G.isInfinite = data.isInfinite||false;
+        G.heraldDaysSurvived = data.heraldDaysSurvived||0;
+        G.coalCooldown = data.coalCooldown||0; G.prayCooldown = data.prayCooldown||0;
+        G.eventActive = data.eventActive||false;
+        G.clickCounter = data.clickCounter||0;
+        G.shelterBonus.warmthLossReduce = G.upgrades.upgraded_windows ? 0.1 : 0;
+        G.shelterBonus.fearReduce = G.upgrades.upgraded_charms ? 1.0 : 0;
+        G.shelterBonus.eventProtect = G.upgrades.upgraded_door ? 1 : 0;
+        if (data.notesAdded) G.flags.notesAdded = data.notesAdded;
+        if (data.talkedToAnna !== undefined) G.flags.talkedToAnna = data.talkedToAnna;
+        if (data.talkedToVera !== undefined) G.flags.talkedToVera = data.talkedToVera;
+        if (data.talkedToDarya !== undefined) G.flags.talkedToDarya = data.talkedToDarya;
+        if (data.firstHeraldMet !== undefined) G.flags.firstHeraldMet = data.firstHeraldMet;
+        if (data.veraSaved !== undefined) G.flags.veraSaved = data.veraSaved;
+        if (data.annaSaved !== undefined) G.flags.annaSaved = data.annaSaved;
+        if (data.daryaSaved !== undefined) G.flags.daryaSaved = data.daryaSaved;
+        if (data.boughtAmulet !== undefined) G.flags.boughtAmulet = data.boughtAmulet;
+        if (data.boughtWall !== undefined) G.flags.boughtWall = data.boughtWall;
+        if (data.boughtCandle !== undefined) G.flags.boughtCandle = data.boughtCandle;
+        if (data.boughtBlanket !== undefined) G.flags.boughtBlanket = data.boughtBlanket;
+        if (data.boughtHeatCrystal !== undefined) G.flags.boughtHeatCrystal = data.boughtHeatCrystal;
+        if (data.boughtPickaxe !== undefined) G.flags.boughtPickaxe = data.boughtPickaxe;
+        if (data.boughtMine !== undefined) G.flags.boughtMine = data.boughtMine;
+        if (data.boughtWindows !== undefined) G.flags.boughtWindows = data.boughtWindows;
+        if (data.boughtCharms !== undefined) G.flags.boughtCharms = data.boughtCharms;
+        if (data.boughtDoor !== undefined) G.flags.boughtDoor = data.boughtDoor;
+        if (data.metMerchant !== undefined) G.flags.metMerchant = data.metMerchant;
+        if (data.foundOldMap !== undefined) G.flags.foundOldMap = data.foundOldMap;
+        if (data.usedArtifact !== undefined) G.flags.usedArtifact = data.usedArtifact;
+        if (data.finalChoice !== undefined) G.flags.finalChoice = data.finalChoice;
+        if (data.questRareStones !== undefined) G.flags.questRareStones = data.questRareStones;
+        if (data.merchantQuestActive !== undefined) G.flags.merchantQuestActive = data.merchantQuestActive;
+        if (data.secretNightUnlocked !== undefined) G.flags.secretNightUnlocked = data.secretNightUnlocked;
+        if (data.secretNightCompleted !== undefined) G.flags.secretNightCompleted = data.secretNightCompleted;
+        if (data.night1Done !== undefined) G.flags.night1Done = data.night1Done;
+        if (data.night2Done !== undefined) G.flags.night2Done = data.night2Done;
+        if (data.night3Done !== undefined) G.flags.night3Done = data.night3Done;
+        if (data.night4Done !== undefined) G.flags.night4Done = data.night4Done;
+        if (data.night5Done !== undefined) G.flags.night5Done = data.night5Done;
+        if (data.night6Done !== undefined) G.flags.night6Done = data.night6Done;
+        if (data.night7Done !== undefined) G.flags.night7Done = data.night7Done;
+        if (data.secretNightDone !== undefined) G.flags.secretNightDone = data.secretNightDone;
+        if (data.nightPaused !== undefined) G.nightPaused = data.nightPaused;
+        if (data.nightElapsedReal !== undefined) G.nightElapsedReal = data.nightElapsedReal;
+        if (data.nightCounters) {
+            G.nightCounters = data.nightCounters;
+        }
+        if (data.bossActive !== undefined) G.bossActive = data.bossActive;
+        if (data.bossHits !== undefined) G.bossHits = data.bossHits;
+        if (data.bossAttackTimer !== undefined) G.bossAttackTimer = data.bossAttackTimer;
+        if (data.boss3Active !== undefined) G.boss3Active = data.boss3Active;
+        if (data.boss3Hits !== undefined) G.boss3Hits = data.boss3Hits;
+        if (data.boss3AttackTimer !== undefined) G.boss3AttackTimer = data.boss3AttackTimer;
+        if (data.boss3Defeated !== undefined) G.boss3Defeated = data.boss3Defeated;
+        if (data.secretEventTimer !== undefined) G.secretEventTimer = data.secretEventTimer;
+        if (data.meat_amulet !== undefined) G.upgrades.meat_amulet = data.meat_amulet;
+        if (data.lastAdStoneTime !== undefined) G.flags.lastAdStoneTime = data.lastAdStoneTime;
+        if (G.bossActive) {
+            document.getElementById('boss-container').style.display = 'block';
+            document.getElementById('boss-hp').innerText = G.bossMaxHits - G.bossHits;
+            document.getElementById('boss-bar').style.width = Math.max(0, (G.bossMaxHits - G.bossHits) / G.bossMaxHits * 100) + '%';
+        }
+        if (G.boss3Active) {
+            document.getElementById('boss3-container').style.display = 'block';
+            document.getElementById('boss3-hp').innerText = G.boss3MaxHits - G.boss3Hits;
+            document.getElementById('boss3-bar').style.width = Math.max(0, (G.boss3MaxHits - G.boss3Hits) / G.boss3MaxHits * 100) + '%';
+        }
+        updateMaxWarmth();
+        if (G.meat > G.maxMeatRecord) {
+            G.maxMeatRecord = G.meat;
+            submitScore(G.maxMeatRecord);
+        }
+        return true;
+    } catch(e) {
+        console.error('Ошибка загрузки сохранения:', e);
+        return false;
+    }
+}
+
+// ============================================================
+//  ИНИЦИАЛИЗАЦИЯ
+// ============================================================
+function init() {
+    if (G.gameInterval) clearInterval(G.gameInterval);
+    if (G.animationFrame) cancelAnimationFrame(G.animationFrame);
+    loadGame();
+    checkAndAddAutoNotes();
+    renderAchievements(); renderEndings(); renderNotes(); renderNightSelect();
+    updateVignette();
+    startFireParticles();
+    if (!G.animationFrame) G.animationFrame = requestAnimationFrame(animationLoop);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    if (!G.isGameOver) {
+        if (G.isDayPhase) {
+            switchScreen('game-screen');
+            startDayPhase();
+        } else if (G.nightPreviewActive) {
+            switchScreen('game-screen');
+            showNightPreview();
+        } else if (G.nightPaused && !G.isGameOver) {
+            switchScreen('game-screen');
+            continueNight();
+        } else if (!G.isDayPhase && !G.nightPreviewActive && !G.nightPaused && G.day > 0) {
+            if (!G.gameInterval && !G.eventActive) startNight(G.isSecretNight, G.isInfinite, G.day);
+        }
+    }
+    updateAbilityBarVisibility();
+    updateContinueButton();
+    updateMusic('menu-screen', false);
+}
+
+// Запуск
+init();
+</script>
+</body>
+</html>
