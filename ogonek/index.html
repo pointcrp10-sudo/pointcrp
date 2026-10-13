@@ -465,7 +465,7 @@
     <button class="btn" onclick="switchScreen('notes-screen')">📜 Записки</button>
     <button class="btn" onclick="switchScreen('night-select-screen')">🌙 Выбор ночи</button>
     <button class="btn" onclick="showCredits()">📖 О сюжете</button>
-    <!-- <button class="btn" id="leaderboard-btn" onclick="showLeaderboard()">🏆 Таблица лидеров</button> -->
+    <button class="btn" id="leaderboard-btn" onclick="showLeaderboard()">🏆 Таблица лидеров</button>
     <button class="btn" id="mute-btn" onclick="toggleMute()">🔊 Звук включён</button>
 </div>
 
@@ -551,13 +551,13 @@
             <button class="buy-btn" onclick="exchangeMeatToCoal()">Обменять</button>
         </div>
         <div class="shop-item" id="merchant-quest"><div class="item-info"><div class="item-title">📜 Задание торговца</div><div class="item-cost" id="quest-desc">Принесите 3 редких камня, чтобы открыть Секретную Ночь.</div></div><button class="buy-btn" onclick="checkQuest()">Сдать камни</button></div>
-        <!-- Блок рекламного камня -->
+        <!-- Блок бесплатного камня -->
         <div class="shop-item" id="ad-stone-container">
             <div class="item-info">
-                <div class="item-title">💎 Редкий камень за рекламу</div>
+                <div class="item-title">💎 Бесплатный редкий камень</div>
                 <div class="item-cost" id="ad-stone-status">Доступно</div>
             </div>
-            <button class="buy-btn" id="ad-stone-btn" onclick="getStoneViaAd()">Смотреть рекламу</button>
+            <button class="buy-btn" id="ad-stone-btn" onclick="getStoneViaAd()">Получить</button>
         </div>
     </div>
     <button class="btn" onclick="switchScreen('menu-screen')">В главное меню</button>
@@ -606,174 +606,95 @@
 
 <script>
 // ============================================================
-//  ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ SDK
-// ============================================================
-let ysdk = null;
-let isYandex = false;
-
-// ============================================================
-//  ИНИЦИАЛИЗАЦИЯ SDK – c i18n и зелёным индикатором
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof YaGames !== 'undefined') {
-        YaGames.init().then(sdk => {
-            ysdk = sdk;
-            isYandex = true;
-            const lang = ysdk.environment.i18n.lang || 'ru';
-            document.documentElement.setAttribute('lang', lang);
-            if (ysdk.features && ysdk.features.LoadingAPI) {
-                ysdk.features.LoadingAPI.ready();
-            }
-            console.log('Yandex SDK инициализирован');
-        }).catch(e => console.warn('SDK error', e));
-    } else {
-        console.warn('YaGames не определён – возможно, вы запускаете игру вне Яндекс.Игр');
-    }
-});
-
-// ============================================================
-//  ФУНКЦИИ РЕКЛАМЫ – ИСПРАВЛЕННЫЕ ПО ДОКУМЕНТАЦИИ
+//  ЗАГЛУШКИ ВМЕСТО РЕКЛАМЫ (SDK от Яндекс.Игр не используется)
 // ============================================================
 function showFullscreenAd(onClose) {
-    if (!isYandex || !ysdk) {
-        if (onClose) onClose();
-        return;
-    }
-    try {
-        if (ysdk.adv && typeof ysdk.adv.showFullscreenAdv === 'function') {
-            ysdk.adv.showFullscreenAdv({
-                callbacks: {
-                    onOpen: () => console.log('Fullscreen ad opened'),
-                    onClose: (wasShown) => {
-                        console.log('Fullscreen ad closed, was shown:', wasShown);
-                        if (onClose) onClose();
-                    },
-                    onError: (error) => {
-                        console.error('Fullscreen ad error:', error);
-                        if (onClose) onClose();
-                    }
-                }
-            });
-        } else {
-            console.warn('Реклама недоступна (adv отсутствует)');
-            if (onClose) onClose();
-        }
-    } catch(e) {
-        console.error('Ошибка показа полноэкранной рекламы:', e);
-        if (onClose) onClose();
-    }
+    // Реклама отключена — просто продолжаем игру.
+    if (onClose) onClose();
 }
-
-function showRewardedAd(onRewarded, onError) {
-    if (!isYandex || !ysdk) {
-        console.warn('SDK не инициализирован, пропускаем рекламу');
-        if (onRewarded) onRewarded();
-        return;
-    }
-    try {
-        if (ysdk.adv && typeof ysdk.adv.showRewardedVideo === 'function') {
-            ysdk.adv.showRewardedVideo({
-                callbacks: {
-                    onOpen: () => console.log('Rewarded ad opened'),
-                    onRewarded: () => {
-                        console.log('Rewarded ad completed');
-                        if (onRewarded) onRewarded();
-                    },
-                    onClose: (wasShown) => {
-                        console.log('Rewarded ad closed, was shown:', wasShown);
-                        if (!wasShown && onRewarded) {
-                            console.warn('Ad was not shown, giving reward as fallback');
-                            onRewarded();
-                        }
-                    },
-                    onError: (error) => {
-                        console.error('Ошибка показа рекламы:', error);
-                        if (onError) onError(error);
-                        else if (onRewarded) onRewarded();
-                    }
-                }
-            });
-        } else {
-            console.warn('Метод showRewardedVideo не найден');
-            if (onError) onError(new Error('Метод не найден'));
-            else if (onRewarded) onRewarded();
-        }
-    } catch(e) {
-        console.error('showRewardedVideo error:', e);
-        if (onError) onError(e);
-        else if (onRewarded) onRewarded();
-    }
+function showRewardedAd(onRewarded) {
+    // Реклама отключена — сразу выдаём награду.
+    if (onRewarded) onRewarded();
+}
+function submitScore(/* meatAmount */) {
+    // Локальный лидерборд — счёт никуда не отправляем.
 }
 
 // ============================================================
-//  ЛИДЕРБОРД – ИСПРАВЛЕННЫЙ (с правильным извлечением entries)
+//  ЛИДЕРБОРД (мемный, статичный, с прогрессом игрока)
 // ============================================================
-async function submitScore(meatAmount) {
-    if (!isYandex || !ysdk || !ysdk.leaderboards) return;
-    try {
-        if (typeof ysdk.leaderboards.setScore === 'function') {
-            await ysdk.leaderboards.setScore('meatlb', meatAmount);
-        } else if (typeof ysdk.leaderboards.setLeaderboardScore === 'function') {
-            await ysdk.leaderboards.setLeaderboardScore('meatlb', meatAmount);
-        } else {
-            console.warn('Метод установки счёта не найден');
-        }
-        console.log('Счёт отправлен в лидерборд:', meatAmount);
-    } catch (e) {
-        console.warn('Не удалось отправить счёт:', e);
-    }
+const MOCK_LEADERBOARD = [
+    { name: 'Армен',        meat: 999999999999999999 },
+    { name: 'Батя',         meat: 20020676767 },
+    { name: 'Соловьёв',     meat: 100000 },
+    { name: 'Скуф',         meat: 1337 },
+    { name: 'Сигма-бой',    meat: 500 },
+    { name: 'Чекушович',    meat: 100 },
+    { name: 'Красавчик-2014', meat: 20 },
+    { name: 'Дно-сити',     meat: 2 }
+];
+
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
 }
 
-async function showLeaderboard() {
-    if (!isYandex || !ysdk) {
-        alert('Таблица лидеров недоступна');
-        return;
-    }
-    try {
-        let result;
-        if (typeof ysdk.leaderboards.getLeaderboardEntries === 'function') {
-            result = await ysdk.leaderboards.getLeaderboardEntries('meatlb', { quantity: 10 });
-        } else if (typeof ysdk.leaderboards.getEntries === 'function') {
-            result = await ysdk.leaderboards.getEntries('meatlb', { quantity: 10 });
-        } else {
-            alert('Метод лидерборда временно недоступен');
-            return;
-        }
+function getLeaderboardEntries() {
+    const playerMeat = G.maxMeatRecord || 0;
+    const entries = MOCK_LEADERBOARD.map(e => ({ name: e.name, meat: e.meat, isPlayer: false }));
+    entries.push({ name: 'Вы', meat: playerMeat, isPlayer: true });
+    // Стабильная сортировка по убыванию; при равенстве игрок — ниже фейков.
+    entries.sort((a, b) => {
+        if (b.meat !== a.meat) return b.meat - a.meat;
+        if (a.isPlayer && !b.isPlayer) return 1;
+        if (!a.isPlayer && b.isPlayer) return -1;
+        return 0;
+    });
+    return entries;
+}
 
-        // Извлекаем массив записей: обычно это result.entries, но на всякий случай проверяем
-        let entries;
-        if (Array.isArray(result)) {
-            entries = result;
-        } else if (result && Array.isArray(result.entries)) {
-            entries = result.entries;
-        } else {
-            entries = [];
-        }
+function showLeaderboard() {
+    const entries = getLeaderboardEntries();
+    const playerIndex = entries.findIndex(e => e.isPlayer);
+    const playerRank = playerIndex + 1;
+    const playerMeat = G.maxMeatRecord || 0;
 
-        let text = 'Шашлычные Короли:<br><br>';
-        if (entries.length === 0) {
-            text += 'Пока нет записей. Станьте первым!';
-        } else {
-            entries.forEach((entry, i) => {
-                const place = i + 1;
-                const name = entry.player?.name || 'Аноним';
-                const score = entry.score || 0;
-                text += `${place}. ${name} – ${score} 🍖<br>`;
-            });
-        }
-        showModal('🏆 Лидерборд', text);
-    } catch (e) {
-        console.error('Ошибка получения лидерборда:', e);
-        if (e.message && e.message.includes('404')) {
-            alert('Таблица лидеров с именем "meatlb" не найдена. Проверьте название в консоли разработчика.');
-        } else {
-            alert('Не удалось загрузить таблицу лидеров. Попробуйте позже.');
-        }
+    const top8 = entries.slice(0, 8);
+    const playerInTop8 = top8.some(e => e.isPlayer);
+
+    let html = '<div style="text-align:left; font-family: \'Courier New\', monospace; line-height:1.9; font-size:15px;">';
+    html += '<div style="color:#ffaa44; font-weight:bold; text-align:center; margin-bottom:14px; font-size:17px;">🏆 Шашлычные Короли</div>';
+
+    top8.forEach((e, i) => {
+        const rank = i + 1;
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+        const nameStyle = e.isPlayer
+            ? 'color:#ffcc66; font-weight:bold; background: rgba(255,200,80,0.12); padding: 3px 8px; border-radius:4px; display:inline-block;'
+            : 'color:#e0d4c8;';
+        html += `<div style="margin: 2px 0;"><span style="${nameStyle}">${medal} ${escapeHtml(e.name)} — ${e.meat.toLocaleString('ru-RU')} 🍖</span></div>`;
+    });
+
+    if (!playerInTop8) {
+        html += '<div style="color:#665; margin: 8px 0; text-align:center; letter-spacing: 6px;">· · ·</div>';
+        html += `<div><span style="color:#ffcc66; font-weight:bold; background: rgba(255,200,80,0.12); padding: 3px 8px; border-radius:4px; display:inline-block;">${playerRank}. Вы — ${playerMeat.toLocaleString('ru-RU')} 🍖</span></div>`;
     }
+
+    html += '</div>';
+
+    if (!playerInTop8) {
+        const target = entries[7];
+        const need = Math.max(1, target.meat - playerMeat + 1);
+        html += `<div style="margin-top:16px; color:#b0a090; font-size:14px; text-align:center;">До 8-го места ещё <b style="color:#ffcc66;">${need.toLocaleString('ru-RU')} 🍖</b></div>`;
+    } else {
+        html += `<div style="margin-top:16px; color:#88dd88; font-size:14px; text-align:center;">✨ Вы в топ-8! Не сдавайте позиций.</div>`;
+    }
+
+    showModal('🏆 Лидерборд', html);
 }
 
 // ============================================================
-//  АУДИО – МУЗЫКА И ЗВУКИ
+//  АУДИО
 // ============================================================
 const menuMusic = new Audio('assets/menu_ambient.mp3');
 menuMusic.loop = true;
@@ -902,7 +823,7 @@ const SECRET_NIGHT_DURATION = 300;
 const SAVE_VERSION = 5;
 
 // ============================================================
-//  КОНСТАНТЫ (без изменений)
+//  КОНСТАНТЫ
 // ============================================================
 const MERCHANT_FUNNY_PHRASES = [
     "— Ты уверен, что это поможет? Я бы на твоём месте купил ещё шашлык.",
@@ -1056,12 +977,12 @@ function updateMeatRecord() {
     if (G.meat > G.maxMeatRecord) {
         G.maxMeatRecord = G.meat;
         saveGame();
-        submitScore(G.maxMeatRecord);
+        // submitScore вызывается как заглушка для совместимости
     }
 }
 
 // ============================================================
-//  ФУНКЦИИ ДЛЯ РЕКЛАМНОГО КАМНЯ В ЛАВКЕ
+//  БЕСПЛАТНЫЙ КАМЕНЬ (раньше — за рекламу)
 // ============================================================
 function getStoneViaAd() {
     const now = Date.now();
@@ -1070,20 +991,12 @@ function getStoneViaAd() {
         alert(`Подождите ещё ${remaining} мин.`);
         return;
     }
-    showRewardedAd(
-        () => {
-            G.rareStones++;
-            G.flags.lastAdStoneTime = Date.now();
-            updateShopUI();
-            saveGame();
-            updateAdStoneStatus();
-            alert('Вы получили редкий камень!');
-        },
-        (err) => {
-            console.error('Ошибка показа рекламы:', err);
-            alert('Не удалось показать рекламу. Попробуйте позже.');
-        }
-    );
+    G.rareStones++;
+    G.flags.lastAdStoneTime = now;
+    updateShopUI();
+    saveGame();
+    updateAdStoneStatus();
+    alert('Вы получили редкий камень!');
 }
 
 function updateAdStoneStatus() {
@@ -1139,12 +1052,136 @@ function toggleMute() {
 }
 
 // ============================================================
-//  АНИМАЦИЯ, ВИНЬЕТКА, ЧАСТИЦЫ
+//  ОПТИМИЗИРОВАННАЯ АНИМАЦИЯ, ВИНЬЕТКА, ЧАСТИЦЫ
 // ============================================================
+const fireCanvas = document.getElementById('fire-canvas');
+const ctx = fireCanvas.getContext('2d');
+let particles = [];
+let fireX = 0, fireY = 0;
+
+// Кэшируем ссылку на кнопку — не дёргаем DOM каждый кадр
+let fireBtnEl = null;
+
+// DPR-кап: на Retina-экранах снижаем нагрузку в разы
+function resizeCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    fireCanvas.width = Math.floor(window.innerWidth * dpr);
+    fireCanvas.height = Math.floor(window.innerHeight * dpr);
+    fireCanvas.style.width = window.innerWidth + 'px';
+    fireCanvas.style.height = window.innerHeight + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function updateFirePosition() {
+    if (!fireBtnEl) fireBtnEl = document.getElementById('fire-btn');
+    if (!fireBtnEl) return;
+    const rect = fireBtnEl.getBoundingClientRect();
+    fireX = rect.left + rect.width / 2;
+    fireY = rect.top + rect.height / 2;
+}
+
+// Resize-обработчик, затроттленный через rAF
+let resizeRafId = null;
+function onResizeDebounced() {
+    if (resizeRafId !== null) return;
+    resizeRafId = requestAnimationFrame(() => {
+        resizeRafId = null;
+        resizeCanvas();
+        updateFirePosition();
+    });
+}
+window.addEventListener('resize', onResizeDebounced);
+window.addEventListener('scroll', onResizeDebounced, { passive: true });
+resizeCanvas();
+
+class FireParticle {
+    constructor() {
+        this.x = fireX + (Math.random() - 0.5) * 20;
+        this.y = fireY + (Math.random() - 0.5) * 15;
+        this.size = Math.random() * 4 + 2;
+        this.speedX = (Math.random() - 0.5) * 0.7;
+        this.speedY = -Math.random() * 1.8 - 0.4;
+        this.life = 1;
+        this.decay = 0.004 + Math.random() * 0.005;
+        // Предвычисленный цвет (без HSL-строки каждый кадр)
+        const lum = 60 + Math.random() * 30;
+        this.r = 255;
+        this.g = Math.min(255, Math.floor(120 + lum));
+        this.b = Math.floor(20 + (lum - 60));
+        this.twinklePhase = Math.random() * Math.PI * 2;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.life -= this.decay;
+        this.twinklePhase += 0.1;
+        if (this.life < 0) this.life = 0;
+    }
+    draw() {
+        const alpha = this.life * (0.7 + 0.3 * Math.sin(this.twinklePhase));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = `rgb(${this.r},${this.g},${this.b})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function spawnFireParticle() {
+    if (G.warmth / G.maxWarmth < 0.3) return;
+    if (G.isGameOver || G.isDayPhase || G.nightPreviewActive) return;
+    const count = Math.floor(1 + G.warmth / 35);
+    for (let i = 0; i < count; i++) {
+        particles.push(new FireParticle());
+    }
+}
+
+function drawFireParticles() {
+    const now = performance.now();
+    // Спавн реже: 300 мс вместо 200
+    if (now - G.lastParticleSpawn > 300) {
+        spawnFireParticle();
+        G.lastParticleSpawn = now;
+    }
+    ctx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+
+    // Уплотнение массива вместо splice в цикле
+    let writeIndex = 0;
+    for (let readIndex = 0; readIndex < particles.length; readIndex++) {
+        const p = particles[readIndex];
+        p.update();
+        if (p.life > 0) {
+            p.draw();
+            particles[writeIndex++] = p;
+        }
+    }
+    particles.length = writeIndex;
+
+    if (particles.length > 150) {
+        particles.splice(0, particles.length - 150);
+    }
+    ctx.globalAlpha = 1;
+}
+
+function startFireParticles() {
+    updateFirePosition();
+    G.lastParticleSpawn = 0;
+}
+
+// Кэшируем активность игрового экрана: проверяем раз в 30 кадров, а не каждый
+let frameCounter = 0;
+let isGameScreenActive = false;
+
 function animationLoop() {
-    if (document.getElementById('game-screen').classList.contains('active-screen')) {
+    if (frameCounter % 30 === 0) {
+        const el = document.getElementById('game-screen');
+        isGameScreenActive = el ? el.classList.contains('active-screen') : false;
+    }
+    frameCounter++;
+
+    if (isGameScreenActive) {
         drawFireParticles();
-    } else {
+    } else if (fireCanvas.width > 0) {
         ctx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
     }
     G.animationFrame = requestAnimationFrame(animationLoop);
@@ -1158,91 +1195,8 @@ function updateVignette() {
     vig.style.background = `radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,${dark}) 100%)`;
 }
 
-const fireCanvas = document.getElementById('fire-canvas');
-const ctx = fireCanvas.getContext('2d');
-let particles = [];
-let fireX = 0, fireY = 0;
-
-function resizeCanvas() { fireCanvas.width = window.innerWidth; fireCanvas.height = window.innerHeight; }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-
-function updateFirePosition() {
-    const btn = document.getElementById('fire-btn');
-    const rect = btn.getBoundingClientRect();
-    fireX = rect.left + rect.width/2;
-    fireY = rect.top + rect.height/2;
-}
-window.addEventListener('resize', () => { resizeCanvas(); updateFirePosition(); });
-
-class FireParticle {
-    constructor() {
-        this.x = fireX + (Math.random()-0.5)*20;
-        this.y = fireY + (Math.random()-0.5)*15;
-        this.size = Math.random()*5+2;
-        this.speedX = (Math.random()-0.5)*0.8;
-        this.speedY = -Math.random()*2-0.5;
-        this.life = 1;
-        this.decay = 0.003+Math.random()*0.005;
-        this.color = `hsl(${30+Math.random()*20}, 100%, ${60+Math.random()*30}%)`;
-        this.twinkle = Math.random()*100;
-    }
-    update() {
-        this.x += this.speedX; this.y += this.speedY;
-        this.life -= this.decay; this.twinkle += 0.1;
-        if (this.life < 0) this.life = 0;
-    }
-    draw() {
-        const alpha = this.life * (0.6 + 0.4*Math.sin(this.twinkle));
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size*this.life, 0, Math.PI*2);
-        ctx.fillStyle = this.color;
-        ctx.globalAlpha = alpha;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.shadowColor = '#ff8800';
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-}
-
-function spawnFireParticle() {
-    const isGameActive = document.getElementById('game-screen').classList.contains('active-screen');
-    if (!isGameActive) return;
-    if (G.warmth / G.maxWarmth < 0.3) return;
-    if (G.isGameOver || G.isDayPhase || G.nightPreviewActive) return;
-    updateFirePosition();
-    const count = Math.floor(2 + G.warmth/20);
-    for (let i=0; i<count; i++) {
-        particles.push(new FireParticle());
-    }
-}
-
-function drawFireParticles() {
-    updateFirePosition();
-    const now = performance.now();
-    if (now - G.lastParticleSpawn > 200) {
-        spawnFireParticle();
-        G.lastParticleSpawn = now;
-    }
-    ctx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
-    for (let i = particles.length-1; i>=0; i--) {
-        const p = particles[i];
-        p.update();
-        if (p.life <= 0) { particles.splice(i,1); continue; }
-        p.draw();
-    }
-    if (particles.length > 300) particles.splice(0, particles.length-300);
-}
-
-function startFireParticles() {
-    updateFirePosition();
-    G.lastParticleSpawn = 0;
-}
-
 // ============================================================
-//  ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ (UI, СОБЫТИЯ, БОССЫ И Т.Д.)
+//  ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ
 // ============================================================
 
 function switchScreen(screenId) {
@@ -1966,7 +1920,7 @@ function startHeraldEvent() {
 }
 
 // ============================================================
-//  ЗАПУСК НОЧИ (С ИСПРАВЛЕНИЕМ ДЛЯ INSANITY)
+//  ЗАПУСК НОЧИ
 // ============================================================
 function startNight(isSecret = false, isInfinite = false, dayNum = null, resume = false) {
     if (G.gameInterval) clearInterval(G.gameInterval);
@@ -2145,12 +2099,8 @@ function startNight(isSecret = false, isInfinite = false, dayNum = null, resume 
             fearGrowth = Math.max(0, fearGrowth);
             G.fear = Math.min(MAX_FEAR, G.fear + fearGrowth);
             if (G.panicImmunity > 0) G.panicImmunity--;
-            // ============================================================
-            //  ИСПРАВЛЕНИЕ ДЛЯ INSANITY – если концовка уже получена, не завершаем
-            // ============================================================
             if (G.fear >= MAX_FEAR) {
                 if (G.endings.includes('insanity')) {
-                    // Уже было безумие – просто паника
                     if (!G.panicActive && G.panicImmunity === 0) {
                         G.panicActive = true;
                         G.panicTimer = 18;
@@ -2248,7 +2198,6 @@ function startNight(isSecret = false, isInfinite = false, dayNum = null, resume 
                         triggerGameOver();
                         return;
                     }
-                    // Проверка страха при атаке Короля
                     if (G.fear >= MAX_FEAR) {
                         if (G.endings.includes('insanity')) {
                             if (!G.panicActive && G.panicImmunity === 0) {
@@ -2336,7 +2285,6 @@ function startNight(isSecret = false, isInfinite = false, dayNum = null, resume 
             if (G.saveCounter % 10 === 0) {
                 saveGame();
             }
-            // Проверка окончания ночи
             if (!isInfinite && currentSecond * 1000 >= durationMs) {
                 if (G.day === 7 && !isSecret && !isInfinite && G.bossActive) {
                     triggerGameOver();
@@ -2632,7 +2580,7 @@ function endDayPhase(resultText) {
 }
 
 // ============================================================
-//  ДНЕВНАЯ СВОДКА (showDayTransition)
+//  ДНЕВНАЯ СВОДКА
 // ============================================================
 function showDayTransition() {
     document.getElementById('fire-btn').style.display = 'none';
@@ -2654,9 +2602,8 @@ function showDayTransition() {
     document.getElementById('continue-day-btn').onclick = () => {
         radio.style.display = 'none';
         document.getElementById('story-content').style.display = 'block';
-        showFullscreenAd(() => {
-            startDayPhase();
-        });
+        // Реклама отключена — сразу стартуем день.
+        startDayPhase();
     };
     updateAbilityBarVisibility();
     updateContinueButton();
@@ -2810,62 +2757,55 @@ function checkRandomNightEvent() {
 }
 
 // ============================================================
-//  КОНЦОВКИ (showEnding) – с рекламой для секретной и бесконечной
+//  КОНЦОВКИ
 // ============================================================
 function showEnding(type) {
     G.isGameOver = true;
     if (G.gameInterval) { clearInterval(G.gameInterval); G.gameInterval = null; }
-    const displayEnding = () => {
-        let title, text;
-        switch(type) {
-            case 'true_victory':
-                title='🌟 ИСТИННЫЙ КОНЕЦ';
-                text=`Вы и ваши союзники (${G.rescued.length} спасённых) сокрушили Короля Мрака! Великая Тьма навсегда отступила. Город возродится. Вы – легенда!<br><br>Спасено: ${G.rescued.length}<br>Записок найдено: ${G.notes.length}`;
-                break;
-            case 'victory':
-                title='✨ ПОБЕДА';
-                text=`Вы победили Короля Мрака! Спасено людей: ${G.rescued.length}. Тьма отступила.<br><br>Записок: ${G.notes.length}`;
-                break;
-            case 'defeat':
-                title='💀 ПОРАЖЕНИЕ';
-                text=`Огонь погас. Тьма поглотила вас. Вы потеряли 5 угля. Попробуйте снова.`;
-                break;
-            case 'secret_victory':
-                title='🔴 СЕКРЕТНАЯ ПОБЕДА';
-                text=`Вы выжили в Кровавую Луну! Тьма развеяна навсегда. Вы – истинный Хранитель Света.<br><br>Спасено: ${G.rescued.length}<br>Записок: ${G.notes.length}`;
-                break;
-            case 'dark_friends':
-                title='👥 ТЁМНЫЕ ДРУЗЬЯ';
-                text=`Теневой Вестник забрал вас во тьму. Теперь у вас есть тёмные друзья, но мир погрузился в вечную ночь.`;
-                break;
-            case 'insanity':
-                title='🌀 БЕЗУМИЕ';
-                text=`Ваш разум не выдержал тьмы. Вы навсегда потеряны в безумии.`;
-                break;
-            default:
-                title='💀 ПОРАЖЕНИЕ';
-                text=`Игра окончена.`;
-                break;
-        }
-        if (!G.endings.includes(type)) G.endings.push(type);
-        document.getElementById('ending-title').innerText = title;
-        document.getElementById('ending-text').innerHTML = text;
-        switchScreen('ending-screen');
-        saveGame();
-        renderEndings();
-        updateAbilityBarVisibility();
-        updateContinueButton();
-        updateMusic('ending-screen', false);
-    };
-    if ((type === 'secret_victory') || (type === 'victory' && G.isInfinite)) {
-        showFullscreenAd(displayEnding);
-    } else {
-        displayEnding();
+    let title, text;
+    switch(type) {
+        case 'true_victory':
+            title='🌟 ИСТИННЫЙ КОНЕЦ';
+            text=`Вы и ваши союзники (${G.rescued.length} спасённых) сокрушили Короля Мрака! Великая Тьма навсегда отступила. Город возродится. Вы – легенда!<br><br>Спасено: ${G.rescued.length}<br>Записок найдено: ${G.notes.length}`;
+            break;
+        case 'victory':
+            title='✨ ПОБЕДА';
+            text=`Вы победили Короля Мрака! Спасено людей: ${G.rescued.length}. Тьма отступила.<br><br>Записок: ${G.notes.length}`;
+            break;
+        case 'defeat':
+            title='💀 ПОРАЖЕНИЕ';
+            text=`Огонь погас. Тьма поглотила вас. Вы потеряли 5 угля. Попробуйте снова.`;
+            break;
+        case 'secret_victory':
+            title='🔴 СЕКРЕТНАЯ ПОБЕДА';
+            text=`Вы выжили в Кровавую Луну! Тьма развеяна навсегда. Вы – истинный Хранитель Света.<br><br>Спасено: ${G.rescued.length}<br>Записок: ${G.notes.length}`;
+            break;
+        case 'dark_friends':
+            title='👥 ТЁМНЫЕ ДРУЗЬЯ';
+            text=`Теневой Вестник забрал вас во тьму. Теперь у вас есть тёмные друзья, но мир погрузился в вечную ночь.`;
+            break;
+        case 'insanity':
+            title='🌀 БЕЗУМИЕ';
+            text=`Ваш разум не выдержал тьмы. Вы навсегда потеряны в безумии.`;
+            break;
+        default:
+            title='💀 ПОРАЖЕНИЕ';
+            text=`Игра окончена.`;
+            break;
     }
+    if (!G.endings.includes(type)) G.endings.push(type);
+    document.getElementById('ending-title').innerText = title;
+    document.getElementById('ending-text').innerHTML = text;
+    switchScreen('ending-screen');
+    saveGame();
+    renderEndings();
+    updateAbilityBarVisibility();
+    updateContinueButton();
+    updateMusic('ending-screen', false);
 }
 
 // ============================================================
-//  ПОРАЖЕНИЕ (triggerGameOver)
+//  ПОРАЖЕНИЕ
 // ============================================================
 function triggerGameOver() {
     G.isGameOver = true;
@@ -2878,21 +2818,11 @@ function triggerGameOver() {
     document.getElementById('story-text').innerHTML = `Огонь погас на ${G.isSecretNight ? 'Секретной' : G.day}-й ночи. Вы продержались ${G.timeSurvived}с. Потеряно 5 угля (осталось ${G.coal.toFixed(2)}).`;
     const container = document.getElementById('choices-container');
     container.innerHTML = '';
-    if (G.isSecretNight || G.isInfinite) {
-        showFullscreenAd(() => {
-            const b = document.createElement('button');
-            b.className = 'btn';
-            b.innerText = 'Вернуться в меню';
-            b.onclick = () => { saveGame(); switchScreen('menu-screen'); };
-            container.appendChild(b);
-        });
-    } else {
-        const b = document.createElement('button');
-        b.className = 'btn';
-        b.innerText = 'Вернуться в меню';
-        b.onclick = () => { saveGame(); switchScreen('menu-screen'); };
-        container.appendChild(b);
-    }
+    const b = document.createElement('button');
+    b.className = 'btn';
+    b.innerText = 'Вернуться в меню';
+    b.onclick = () => { saveGame(); switchScreen('menu-screen'); };
+    container.appendChild(b);
     updateGameUI();
     updateAbilityBarVisibility();
     updateContinueButton();
@@ -3249,10 +3179,6 @@ function loadGame() {
             document.getElementById('boss3-bar').style.width = Math.max(0, (G.boss3MaxHits - G.boss3Hits) / G.boss3MaxHits * 100) + '%';
         }
         updateMaxWarmth();
-        if (G.meat > G.maxMeatRecord) {
-            G.maxMeatRecord = G.meat;
-            submitScore(G.maxMeatRecord);
-        }
         return true;
     } catch(e) {
         console.error('Ошибка загрузки сохранения:', e);
