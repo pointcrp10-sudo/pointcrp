@@ -71,15 +71,10 @@
             border: none;
             box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
         }
-        @media (max-width: 520px) {
-    .game-menu {
-        flex-wrap: wrap;
-    }
-    .menu-btn {
-        flex: 1 1 calc(50% - 5px);
-        font-size: 14px;
-        padding: 10px 4px;
-    }
+       @media (max-width: 720px) {
+    .game-menu { flex-wrap: wrap; }
+    .menu-btn { flex: 1 1 calc(50% - 5px); font-size: 14px; padding: 10px 4px; }
+}
 }
         .container {
             width: 100%;
@@ -163,11 +158,12 @@
     <h1>🤖 ИНТЕРАКТИВНЫЙ УГОЛОК</h1>
     <p class="subtitle">Вселенная безумных квестов и тестов от инди-разработчика.</p>
 
-  <div class="game-menu">
+ <div class="game-menu">
     <a href="index.html" class="menu-btn">🧠 Тест: Нейросети</a>
     <a href="battle.html" class="menu-btn active">💥 Глобальный Баттл</a>
     <a href="quest.html" class="menu-btn">⚔️ Текстовый квест</a>
     <a href="golden-ball/" class="menu-btn">⚽ Золотой Мяч</a>
+    <a href="ogonek/" class="menu-btn">🔥 Огонёк во Тьме</a>
 </div>
     <div class="container">
         <div class="battle-screen">
