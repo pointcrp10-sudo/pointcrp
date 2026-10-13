@@ -1,0 +1,410 @@
+/* ===== Глобальные ===== */
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ===== Защита картинок от выделения и перетаскивания ===== */
+img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-touch-callout: none;
+    pointer-events: none; /* отключаем клики по картинкам, если они не используются как кнопки */
+    /* если в будущем понадобится кликабельность, можно убрать pointer-events */
+}
+
+/* ===== Остальные стили без изменений ===== */
+html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: radial-gradient(ellipse at 30% 40%, #141b2b, #070a12);
+    color: #eee;
+    font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+
+.game-container {
+    width: 100%;
+    max-width: 460px;
+    max-height: 96vh;
+    background: rgba(10, 14, 26, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 32px;
+    padding: 14px 12px 10px;
+    border: 1px solid rgba(247, 201, 72, 0.3);
+    box-shadow: 0 0 40px rgba(247, 201, 72, 0.08), inset 0 0 30px rgba(247, 201, 72, 0.02);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+h1 {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(135deg, #f7c948, #f5a623);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(247, 201, 72, 0.15);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    transition: 0.3s;
+}
+
+/* ===== Главное меню ===== */
+#main-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.level-card {
+    background: rgba(20, 30, 50, 0.6);
+    border: 1.5px solid rgba(247, 201, 72, 0.3);
+    border-radius: 24px;
+    padding: 18px 16px;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.25s;
+    box-shadow: 0 0 20px rgba(247, 201, 72, 0.05);
+}
+
+.level-card:hover {
+    transform: scale(1.04);
+    background: rgba(30, 45, 70, 0.7);
+    border-color: #f7c948;
+    box-shadow: 0 0 30px rgba(247, 201, 72, 0.2);
+}
+
+.level-icon {
+    font-size: 38px;
+    margin-bottom: 4px;
+}
+
+.level-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #f7c948;
+    text-shadow: 0 0 10px rgba(247, 201, 72, 0.2);
+}
+
+.level-desc {
+    font-size: 14px;
+    color: #aab;
+    margin-top: 4px;
+}
+
+/* ===== Карточка игрока ===== */
+#player-card {
+    background: rgba(20, 30, 50, 0.5);
+    border-radius: 20px;
+    padding: 10px 12px;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(247, 201, 72, 0.2);
+    box-shadow: inset 0 0 20px rgba(247, 201, 72, 0.03);
+    flex-shrink: 0;
+    margin-bottom: 6px;
+}
+
+#card-placeholder {
+    font-size: 36px;
+}
+
+.player-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid #f7c948;
+    object-fit: cover;
+    box-shadow: 0 0 15px rgba(247, 201, 72, 0.25);
+    margin-bottom: 4px;
+}
+
+.player-name-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f0f0f0;
+    text-shadow: 0 0 8px rgba(247, 201, 72, 0.15);
+}
+
+/* ===== Сетка (уровень 1) ===== */
+#grid-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    margin-bottom: 6px;
+    min-height: 0;
+}
+
+#grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    padding: 2px;
+}
+
+.grid-cell {
+    background: rgba(20, 30, 50, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 13px;
+    color: #ccc;
+    cursor: pointer;
+    transition: 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    overflow: hidden;
+    word-break: break-all;
+    hyphens: auto;
+}
+
+.grid-cell .cell-num {
+    font-weight: 600;
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.grid-cell:first-child .cell-num {
+    color: #f7c948;
+    text-shadow: 0 0 8px rgba(247, 201, 72, 0.3);
+}
+
+.grid-cell .cell-name {
+    font-size: 12px;
+    max-width: 100%;
+    line-height: 1.2;
+    word-wrap: break-word;
+}
+
+.grid-cell:hover:not(.occupied) {
+    background: rgba(247, 201, 72, 0.08);
+    border-color: #f7c948;
+    transform: scale(1.03);
+}
+
+.grid-cell.occupied {
+    background: rgba(247, 201, 72, 0.07);
+    border-color: #f7c948;
+    color: #f7c948;
+    cursor: default;
+}
+
+.grid-cell.occupied .cell-name {
+    color: #f7c948;
+}
+
+/* ===== Кнопка "В меню" ===== */
+#to-menu-btn {
+    background: rgba(20, 30, 50, 0.7);
+    border: 1px solid rgba(247, 201, 72, 0.3);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f7c948;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+    margin-top: 6px;
+    align-self: center;
+    backdrop-filter: blur(4px);
+}
+
+#to-menu-btn:hover {
+    background: rgba(247, 201, 72, 0.15);
+    border-color: #f7c948;
+    transform: scale(1.04);
+}
+
+/* ===== Крестики-нолики (уровень 2) ===== */
+#tic-tac-toe {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
+}
+
+#ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 240px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.ttt-cell {
+    aspect-ratio: 1;
+    background: rgba(20, 30, 50, 0.5);
+    border: 1.5px solid rgba(247, 201, 72, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    transition: 0.15s;
+    box-shadow: 0 0 8px rgba(247, 201, 72, 0.03);
+}
+
+.ttt-cell:hover:not(.taken) {
+    background-color: rgba(247, 201, 72, 0.1);
+    border-color: #f7c948;
+    transform: scale(1.04);
+}
+
+.ttt-cell.taken {
+    cursor: default;
+}
+
+.ttt-cell.win {
+    border-color: #f7c948;
+    box-shadow: 0 0 20px #f7c948;
+}
+
+/* ===== Модалка выбора игроков ===== */
+#player-select-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 32px;
+    z-index: 10;
+}
+
+.modal-content {
+    background: rgba(16, 24, 40, 0.95);
+    padding: 20px 16px;
+    border-radius: 24px;
+    max-width: 320px;
+    width: 90%;
+    border: 1.5px solid #f7c948;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+
+.modal-content h2 {
+    text-align: center;
+    color: #f7c948;
+    margin-bottom: 14px;
+    font-size: 22px;
+}
+
+.select-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+}
+
+.select-group label {
+    font-weight: 600;
+    color: #ccc;
+    min-width: 60px;
+    font-size: 15px;
+}
+
+.select-group select {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: #1a2233;
+    border: 1px solid #f7c948;
+    color: #eee;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.select-group select option {
+    background: #1a2233;
+}
+
+.select-group img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid #f7c948;
+    object-fit: cover;
+}
+
+#start-ttt-btn {
+    background: linear-gradient(135deg, #f7c948, #e6a020);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+    color: #0b0e1a;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(247, 201, 72, 0.2);
+    transition: 0.25s;
+    width: 100%;
+    max-width: 260px;
+    align-self: center;
+}
+
+#start-ttt-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 0 35px rgba(247, 201, 72, 0.4);
+}
+
+/* ===== Адаптив ===== */
+@media (min-width: 600px) {
+    .game-container { max-width: 440px; padding: 18px 20px; max-height: 92vh; }
+    h1 { font-size: 26px; }
+    .grid-cell { font-size: 15px; min-height: 60px; }
+    .grid-cell .cell-num { font-size: 14px; }
+    .grid-cell .cell-name { font-size: 14px; }
+    #to-menu-btn { font-size: 18px; padding: 10px 20px; }
+    #ttt-board { max-width: 260px; gap: 10px; }
+    .ttt-cell { border-radius: 16px; }
+}
+
+@media (max-width: 480px) {
+    .game-container { padding: 10px 8px; border-radius: 24px; }
+    h1 { font-size: 18px; }
+    .grid-cell { font-size: 12px; min-height: 44px; padding: 4px 2px; }
+    .grid-cell .cell-num { font-size: 11px; }
+    .grid-cell .cell-name { font-size: 11px; }
+    #to-menu-btn { font-size: 14px; padding: 6px 12px; }
+    #ttt-board { max-width: 200px; gap: 6px; }
+    .ttt-cell { border-radius: 10px; }
+}
