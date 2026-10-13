@@ -1,16 +1,361 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Золотой Мяч: ТОП-30</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Золотой Мяч: ТОП-30</title>
+<style>
+/* ===== Глобальные ===== */
+* {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-touch-callout: none;
+    pointer-events: none;
+}
+html, body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background: radial-gradient(ellipse at 30% 40%, #141b2b, #070a12);
+    color: #eee;
+    font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+.game-container {
+    width: 100%;
+    max-width: 460px;
+    max-height: 96vh;
+    background: rgba(10, 14, 26, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 32px;
+    padding: 14px 12px 10px;
+    border: 1px solid rgba(247, 201, 72, 0.3);
+    box-shadow: 0 0 40px rgba(247, 201, 72, 0.08), inset 0 0 30px rgba(247, 201, 72, 0.02);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+h1 {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(135deg, #f7c948, #f5a623);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(247, 201, 72, 0.15);
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+/* ===== Главное меню ===== */
+#main-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+.level-card {
+    background: rgba(20, 30, 50, 0.6);
+    border: 1.5px solid rgba(247, 201, 72, 0.3);
+    border-radius: 24px;
+    padding: 18px 16px;
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.25s;
+    box-shadow: 0 0 20px rgba(247, 201, 72, 0.05);
+}
+.level-card:hover {
+    transform: scale(1.04);
+    background: rgba(30, 45, 70, 0.7);
+    border-color: #f7c948;
+    box-shadow: 0 0 30px rgba(247, 201, 72, 0.2);
+}
+.level-icon { font-size: 38px; margin-bottom: 4px; }
+.level-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #f7c948;
+    text-shadow: 0 0 10px rgba(247, 201, 72, 0.2);
+}
+.level-desc { font-size: 14px; color: #aab; margin-top: 4px; }
+/* ===== Карточка игрока ===== */
+#player-card {
+    background: rgba(20, 30, 50, 0.5);
+    border-radius: 20px;
+    padding: 10px 12px;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(247, 201, 72, 0.2);
+    box-shadow: inset 0 0 20px rgba(247, 201, 72, 0.03);
+    flex-shrink: 0;
+    margin-bottom: 6px;
+}
+#card-placeholder { font-size: 36px; }
+.player-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid #f7c948;
+    object-fit: cover;
+    box-shadow: 0 0 15px rgba(247, 201, 72, 0.25);
+    margin-bottom: 4px;
+}
+.player-name-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f0f0f0;
+    text-shadow: 0 0 8px rgba(247, 201, 72, 0.15);
+}
+/* ===== Сетка (уровень 1) ===== */
+#grid-wrapper {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    margin-bottom: 6px;
+    min-height: 0;
+}
+#grid-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    padding: 2px;
+}
+.grid-cell {
+    background: rgba(20, 30, 50, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 13px;
+    color: #ccc;
+    cursor: pointer;
+    transition: 0.15s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    overflow: hidden;
+    word-break: break-all;
+    hyphens: auto;
+}
+.grid-cell .cell-num {
+    font-weight: 600;
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+.grid-cell:first-child .cell-num {
+    color: #f7c948;
+    text-shadow: 0 0 8px rgba(247, 201, 72, 0.3);
+}
+.grid-cell .cell-name {
+    font-size: 12px;
+    max-width: 100%;
+    line-height: 1.2;
+    word-wrap: break-word;
+}
+.grid-cell:hover:not(.occupied) {
+    background: rgba(247, 201, 72, 0.08);
+    border-color: #f7c948;
+    transform: scale(1.03);
+}
+.grid-cell.occupied {
+    background: rgba(247, 201, 72, 0.07);
+    border-color: #f7c948;
+    color: #f7c948;
+    cursor: default;
+}
+.grid-cell.occupied .cell-name { color: #f7c948; }
+/* ===== Кнопка "В меню" ===== */
+#to-menu-btn {
+    background: rgba(20, 30, 50, 0.7);
+    border: 1px solid rgba(247, 201, 72, 0.3);
+    border-radius: 30px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #f7c948;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+    margin-top: 6px;
+    align-self: center;
+    backdrop-filter: blur(4px);
+}
+#to-menu-btn:hover {
+    background: rgba(247, 201, 72, 0.15);
+    border-color: #f7c948;
+    transform: scale(1.04);
+}
+/* ===== Крестики-нолики (уровень 2) ===== */
+#tic-tac-toe {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
+}
+#ttt-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 240px;
+    width: 100%;
+    margin: 0 auto;
+}
+.ttt-cell {
+    aspect-ratio: 1;
+    background: rgba(20, 30, 50, 0.5);
+    border: 1.5px solid rgba(247, 201, 72, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    transition: 0.15s;
+    box-shadow: 0 0 8px rgba(247, 201, 72, 0.03);
+}
+.ttt-cell:hover:not(.taken) {
+    background-color: rgba(247, 201, 72, 0.1);
+    border-color: #f7c948;
+    transform: scale(1.04);
+}
+.ttt-cell.taken { cursor: default; }
+.ttt-cell.win {
+    border-color: #f7c948;
+    box-shadow: 0 0 20px #f7c948;
+}
+/* ===== Модалка выбора игроков ===== */
+#player-select-modal {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 32px;
+    z-index: 10;
+}
+.modal-content {
+    background: rgba(16, 24, 40, 0.95);
+    padding: 20px 16px;
+    border-radius: 24px;
+    max-width: 320px;
+    width: 90%;
+    border: 1.5px solid #f7c948;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+}
+.modal-content h2 {
+    text-align: center;
+    color: #f7c948;
+    margin-bottom: 14px;
+    font-size: 22px;
+}
+.select-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    justify-content: space-between;
+}
+.select-group label {
+    font-weight: 600;
+    color: #ccc;
+    min-width: 60px;
+    font-size: 15px;
+}
+.select-group select {
+    flex: 1;
+    padding: 8px 6px;
+    border-radius: 10px;
+    background: #1a2233;
+    border: 1px solid #f7c948;
+    color: #eee;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+.select-group select option { background: #1a2233; }
+.select-group img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid #f7c948;
+    object-fit: cover;
+}
+#start-ttt-btn {
+    background: linear-gradient(135deg, #f7c948, #e6a020);
+    border: none;
+    padding: 12px 20px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 18px;
+    text-transform: uppercase;
+    color: #0b0e1a;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(247, 201, 72, 0.2);
+    transition: 0.25s;
+    width: 100%;
+    max-width: 260px;
+    align-self: center;
+}
+#start-ttt-btn:hover {
+    transform: scale(1.04);
+    box-shadow: 0 0 35px rgba(247, 201, 72, 0.4);
+}
+/* ===== Адаптив ===== */
+@media (min-width: 600px) {
+    .game-container { max-width: 440px; padding: 18px 20px; max-height: 92vh; }
+    h1 { font-size: 26px; }
+    .grid-cell { font-size: 15px; min-height: 60px; }
+    .grid-cell .cell-num { font-size: 14px; }
+    .grid-cell .cell-name { font-size: 14px; }
+    #to-menu-btn { font-size: 18px; padding: 10px 20px; }
+    #ttt-board { max-width: 260px; gap: 10px; }
+    .ttt-cell { border-radius: 16px; }
+}
+@media (max-width: 480px) {
+    .game-container { padding: 10px 8px; border-radius: 24px; }
+    h1 { font-size: 18px; }
+    .grid-cell { font-size: 12px; min-height: 44px; padding: 4px 2px; }
+    .grid-cell .cell-num { font-size: 11px; }
+    .grid-cell .cell-name { font-size: 11px; }
+    #to-menu-btn { font-size: 14px; padding: 6px 12px; }
+    #ttt-board { max-width: 200px; gap: 6px; }
+    .ttt-cell { border-radius: 10px; }
+}
+</style>
 </head>
 <body>
     <div class="game-container">
         <h1 id="main-title">⚽ Золотой Мяч: ТОП‑30 ⚽</h1>
 
-        <!-- Главное меню -->
         <div id="main-menu">
             <div class="level-card" onclick="startLevel1()">
                 <div class="level-icon">📋</div>
@@ -24,22 +369,18 @@
             </div>
         </div>
 
-        <!-- Карточка игрока (для первого уровня) -->
         <div id="player-card" style="display:none;">
             <div id="card-placeholder">🏆⚽🏆</div>
         </div>
 
-        <!-- Сетка 5×6 для первого уровня -->
         <div id="grid-wrapper" style="display:none;">
             <div id="grid-container"></div>
         </div>
 
-        <!-- Поле второго уровня -->
         <div id="tic-tac-toe" style="display:none;">
             <div id="ttt-board"></div>
         </div>
 
-        <!-- Модалка выбора игроков -->
         <div id="player-select-modal" style="display:none;">
             <div class="modal-content">
                 <h2>Выберите игроков</h2>
@@ -57,8 +398,433 @@
             </div>
         </div>
 
-        <!-- Кнопка "В меню" -->
         <button id="to-menu-btn" onclick="goToMainMenu()" style="display:none;">← В меню</button>
     </div>
+
+<script>
+// ======================== ЛОКАЛИЗАЦИЯ =========================
+let currentLang = 'ru';
+
+const LANG = {
+    'ru': {
+        yourTurn: 'Ваш ход',
+        opponentTurn: 'Ход соперника',
+        win: 'ВЫ ПОБЕДИЛИ',
+        lose: 'ПОРАЖЕНИЕ ОТ',
+        draw: 'НИЧЬЯ С',
+        playerSelect: 'Выберите игроков',
+        you: 'Вы',
+        opponent: 'Соперник',
+        startMatch: 'Начать матч!',
+        listComplete: 'Список заполнен!',
+        mainTitle: '⚽ Золотой Мяч: ТОП‑30 ⚽'
+    },
+    'en': {
+        yourTurn: 'Your turn',
+        opponentTurn: 'Opponent\'s turn',
+        win: 'YOU WON AGAINST',
+        lose: 'LOSS TO',
+        draw: 'DRAW WITH',
+        playerSelect: 'Select players',
+        you: 'You',
+        opponent: 'Opponent',
+        startMatch: 'Start match!',
+        listComplete: 'List completed!',
+        mainTitle: '⚽ Golden Ball: TOP‑30 ⚽'
+    }
+};
+
+function t(key) {
+    const langData = LANG[currentLang] || LANG['ru'];
+    return langData[key] || key;
+}
+
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('selectstart', e => e.preventDefault());
+
+// ======================== БАЗА ДАННЫХ =========================
+const playersPool = [
+    { name: "Лионель Месси", img: "images/1.jpg" },
+    { name: "Криштиану Роналду", img: "images/2.jpg" },
+    { name: "Килиан Мбаппе", img: "images/3.jpg" },
+    { name: "Эрлинг Холанд", img: "images/4.jpg" },
+    { name: "Винисиус Жуниор", img: "images/5.jpg" },
+    { name: "Джуд Беллингем", img: "images/6.jpg" },
+    { name: "Родри", img: "images/7.jpg" },
+    { name: "Ламин Ямаль", img: "images/8.jpg" },
+    { name: "Усман Дембеле", img: "images/9.jpg" },
+    { name: "Доминик Собослаи", img: "images/10.jpg" },
+    { name: "Харри Кейн", img: "images/11.jpg" },
+    { name: "Майкл Олисе", img: "images/12.jpg" },
+    { name: "Давид Райя", img: "images/13.jpg" },
+    { name: "Вильям Салиба", img: "images/14.jpg" },
+    { name: "Витинья", img: "images/15.jpg" },
+    { name: "Нуно Мендеш", img: "images/16.jpg" },
+    { name: "Бруно Фернандеш", img: "images/17.jpg" },
+    { name: "Букайо Сака", img: "images/18.jpg" },
+    { name: "Йозуа Киммих", img: "images/19.jpg" },
+    { name: "Джамал Мусиала", img: "images/20.jpg" },
+    { name: "Эмильяно Мартинес", img: "images/21.jpg" },
+    { name: "Димарко", img: "images/22.jpg" },
+    { name: "Пау Кубарси", img: "images/23.jpg" },
+    { name: "Педри", img: "images/24.jpg" },
+    { name: "Хвича Кварацхелия", img: "images/25.jpg" },
+    { name: "Лука Модрич", img: "images/26.jpg" },
+    { name: "Мартин Эдегор", img: "images/27.jpg" },
+    { name: "Деклан Райс", img: "images/28.jpg" },
+    { name: "Шерки", img: "images/29.jpg" },
+    { name: "Альварес", img: "images/30.jpg" }
+];
+
+// ======================== КНОПКА "В МЕНЮ" =========================
+function showMenuButton() {
+    document.getElementById('to-menu-btn').style.display = 'block';
+}
+function hideMenuButton() {
+    document.getElementById('to-menu-btn').style.display = 'none';
+}
+
+// ======================== ГЛАВНОЕ МЕНЮ =========================
+function goToMainMenu() {
+    hideMenuButton();
+    document.getElementById('main-menu').style.display = 'flex';
+    document.getElementById('player-card').style.display = 'none';
+    document.getElementById('grid-wrapper').style.display = 'none';
+    document.getElementById('tic-tac-toe').style.display = 'none';
+    document.getElementById('player-select-modal').style.display = 'none';
+    window.tttGameOver = true;
+    document.getElementById('main-title').textContent = t('mainTitle');
+}
+
+// ======================== УРОВЕНЬ 1 =========================
+let currentGamePlayers = [];
+let currentPlayerIndex = 0;
+let choices = Array(30).fill(null);
+
+function startLevel1() {
+    hideMenuButton();
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('player-card').style.display = 'flex';
+    document.getElementById('grid-wrapper').style.display = 'block';
+    document.getElementById('tic-tac-toe').style.display = 'none';
+    showMenuButton();
+    document.getElementById('main-title').textContent = t('mainTitle');
+
+    currentGamePlayers = [...playersPool].sort(() => Math.random() - 0.5);
+    currentPlayerIndex = 0;
+    choices = Array(30).fill(null);
+
+    renderGrid();
+    nextTurn();
+}
+
+function renderGrid() {
+    const container = document.getElementById('grid-container');
+    container.innerHTML = '';
+    for (let i = 0; i < 30; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell' + (choices[i] ? ' occupied' : '');
+        const name = choices[i] || '———';
+        cell.innerHTML = `
+            <span class="cell-num">${i+1}</span>
+            <span class="cell-name">${name}</span>
+        `;
+        if (!choices[i]) {
+            cell.addEventListener('click', () => selectSlot(i));
+        }
+        container.appendChild(cell);
+    }
+}
+
+function nextTurn() {
+    if (currentPlayerIndex < 30) {
+        const player = currentGamePlayers[currentPlayerIndex];
+        document.getElementById('player-card').innerHTML = `
+            <img src="${player.img}" class="player-img" alt="${player.name}">
+            <div class="player-name-text">${player.name}</div>
+        `;
+    } else {
+        document.getElementById('player-card').style.display = 'none';
+    }
+}
+
+function selectSlot(index) {
+    if (currentPlayerIndex >= 30 || choices[index] !== null) return;
+    choices[index] = currentGamePlayers[currentPlayerIndex].name;
+    currentPlayerIndex++;
+    renderGrid();
+    nextTurn();
+}
+
+// ======================== УРОВЕНЬ 2 =========================
+let selectedPlayer1 = null;
+let selectedPlayer2 = null;
+let tttBoard = [];
+let tttPlayer = 'player';
+let tttGameOver = false;
+
+function startLevel2() {
+    hideMenuButton();
+    document.getElementById('main-menu').style.display = 'none';
+    document.getElementById('player-card').style.display = 'flex';
+    document.getElementById('grid-wrapper').style.display = 'none';
+    document.getElementById('tic-tac-toe').style.display = 'none';
+    document.getElementById('main-title').textContent = t('mainTitle');
+    showMenuButton();
+
+    showPlayerSelectModal();
+}
+
+function showPlayerSelectModal() {
+    const modal = document.getElementById('player-select-modal');
+    const select1 = document.getElementById('player1-select');
+    const select2 = document.getElementById('player2-select');
+    const avatar1 = document.getElementById('player1-avatar');
+    const avatar2 = document.getElementById('player2-avatar');
+
+    if (!modal || !select1 || !select2 || !avatar1 || !avatar2) {
+        console.error('Ошибка: элементы модалки не найдены');
+        return;
+    }
+
+    select1.innerHTML = '';
+    select2.innerHTML = '';
+    if (!playersPool || playersPool.length === 0) {
+        console.error('Ошибка: playersPool пуст');
+        return;
+    }
+    playersPool.forEach((p, idx) => {
+        const opt1 = document.createElement('option');
+        opt1.value = idx;
+        opt1.textContent = p.name;
+        select1.appendChild(opt1);
+        const opt2 = document.createElement('option');
+        opt2.value = idx;
+        opt2.textContent = p.name;
+        select2.appendChild(opt2);
+    });
+
+    select1.value = 0;
+    select2.value = 1;
+    avatar1.src = playersPool[0].img;
+    avatar2.src = playersPool[1].img;
+
+    select1.onchange = () => {
+        const idx = parseInt(select1.value);
+        avatar1.src = playersPool[idx].img;
+    };
+    select2.onchange = () => {
+        const idx = parseInt(select2.value);
+        avatar2.src = playersPool[idx].img;
+    };
+
+    modal.style.display = 'flex';
+
+    document.getElementById('start-ttt-btn').onclick = () => {
+        const idx1 = parseInt(select1.value);
+        const idx2 = parseInt(select2.value);
+        if (idx1 === idx2) {
+            alert('Игроки должны быть разными!');
+            return;
+        }
+        selectedPlayer1 = playersPool[idx1];
+        selectedPlayer2 = playersPool[idx2];
+        modal.style.display = 'none';
+        startTicTacToe();
+    };
+}
+
+function startTicTacToe() {
+    const boardEl = document.getElementById('ttt-board');
+    boardEl.innerHTML = '';
+    tttBoard = Array(9).fill(null);
+    tttGameOver = false;
+    tttPlayer = 'player';
+
+    for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'ttt-cell';
+        cell.dataset.index = i;
+        cell.onclick = () => tttCellClick(i);
+        boardEl.appendChild(cell);
+    }
+
+    document.getElementById('tic-tac-toe').style.display = 'flex';
+    updateCardStatus(`${t('yourTurn')} (${selectedPlayer1.name})`);
+    renderTTT();
+}
+
+function updateCardStatus(text) {
+    document.getElementById('player-card').innerHTML = `
+        <div style="font-size:20px; font-weight:bold; color:#f7c948;">${text}</div>
+    `;
+}
+
+function tttCellClick(index) {
+    if (tttGameOver) return;
+    if (tttBoard[index] !== null) return;
+    if (tttPlayer !== 'player') return;
+
+    tttBoard[index] = 'player';
+    renderTTT();
+    if (checkWin('player')) {
+        tttGameOver = true;
+        highlightWin('player');
+        finishGame(true);
+        return;
+    }
+    if (tttBoard.every(c => c !== null)) {
+        tttGameOver = true;
+        finishGame(null);
+        return;
+    }
+
+    tttPlayer = 'computer';
+    updateCardStatus(`${t('opponentTurn')} (${selectedPlayer2.name})...`);
+    setTimeout(() => computerMove(), 350);
+}
+
+function computerMove() {
+    if (tttGameOver) return;
+    let move;
+    if (Math.random() < 1/3) {
+        const empty = tttBoard.map((v,i) => v === null ? i : null).filter(v => v !== null);
+        if (empty.length === 0) return;
+        move = empty[Math.floor(Math.random() * empty.length)];
+    } else {
+        move = getBestMove();
+    }
+    if (move === -1) return;
+    tttBoard[move] = 'computer';
+    renderTTT();
+    if (checkWin('computer')) {
+        tttGameOver = true;
+        highlightWin('computer');
+        finishGame(false);
+        return;
+    }
+    if (tttBoard.every(c => c !== null)) {
+        tttGameOver = true;
+        finishGame(null);
+        return;
+    }
+    tttPlayer = 'player';
+    updateCardStatus(`${t('yourTurn')} (${selectedPlayer1.name})`);
+}
+
+function getBestMove() {
+    let bestScore = -Infinity;
+    let move = -1;
+    for (let i = 0; i < 9; i++) {
+        if (tttBoard[i] === null) {
+            tttBoard[i] = 'computer';
+            const score = minimax(tttBoard, 0, false);
+            tttBoard[i] = null;
+            if (score > bestScore) {
+                bestScore = score;
+                move = i;
+            }
+        }
+    }
+    return move;
+}
+
+function minimax(board, depth, isMaximizing) {
+    if (checkWin('computer')) return 10 - depth;
+    if (checkWin('player')) return depth - 10;
+    if (board.every(c => c !== null)) return 0;
+
+    if (isMaximizing) {
+        let best = -Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (board[i] === null) {
+                board[i] = 'computer';
+                best = Math.max(best, minimax(board, depth+1, false));
+                board[i] = null;
+            }
+        }
+        return best;
+    } else {
+        let best = Infinity;
+        for (let i = 0; i < 9; i++) {
+            if (board[i] === null) {
+                board[i] = 'player';
+                best = Math.min(best, minimax(board, depth+1, true));
+                board[i] = null;
+            }
+        }
+        return best;
+    }
+}
+
+function checkWin(player) {
+    const patterns = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+    ];
+    return patterns.some(p => p.every(idx => tttBoard[idx] === player));
+}
+
+function highlightWin(player) {
+    const patterns = [
+        [0,1,2],[3,4,5],[6,7,8],
+        [0,3,6],[1,4,7],[2,5,8],
+        [0,4,8],[2,4,6]
+    ];
+    const cells = document.querySelectorAll('.ttt-cell');
+    for (let p of patterns) {
+        if (p.every(idx => tttBoard[idx] === player)) {
+            p.forEach(idx => cells[idx].classList.add('win'));
+            break;
+        }
+    }
+}
+
+function renderTTT() {
+    const cells = document.querySelectorAll('.ttt-cell');
+    cells.forEach((cell, idx) => {
+        const val = tttBoard[idx];
+        cell.classList.remove('taken', 'win');
+        if (val === 'player') {
+            cell.style.backgroundImage = `url('${selectedPlayer1.img}')`;
+            cell.classList.add('taken');
+        } else if (val === 'computer') {
+            cell.style.backgroundImage = `url('${selectedPlayer2.img}')`;
+            cell.classList.add('taken');
+        } else {
+            cell.style.backgroundImage = 'none';
+        }
+    });
+}
+
+function finishGame(isWin) {
+    const card = document.getElementById('player-card');
+    if (isWin === true) {
+        card.innerHTML = `
+            <div style="font-size:38px;">🏆</div>
+            <div style="font-size:22px; font-weight:bold; color:#f7c948;">${t('win')} ${selectedPlayer2.name.toUpperCase()}!</div>
+            <div style="color:#aab;">Отличная игра!</div>
+        `;
+    } else if (isWin === false) {
+        card.innerHTML = `
+            <div style="font-size:38px;">😞</div>
+            <div style="font-size:22px; font-weight:bold; color:#e67a5a;">${t('lose')} ${selectedPlayer2.name.toUpperCase()}</div>
+            <div style="color:#aab;">Попробуйте ещё раз</div>
+        `;
+    } else {
+        card.innerHTML = `
+            <div style="font-size:38px;">🤝</div>
+            <div style="font-size:22px; font-weight:bold; color:#aaa;">${t('draw')} ${selectedPlayer2.name.toUpperCase()}</div>
+            <div style="color:#aab;">Вы сыграли вничью</div>
+        `;
+    }
+}
+
+// ======================== ИНИЦИАЛИЗАЦИЯ =========================
+hideMenuButton();
+document.getElementById('main-menu').style.display = 'flex';
+document.getElementById('main-title').textContent = t('mainTitle');
+</script>
 </body>
 </html>
